@@ -1,0 +1,68 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\BuatData;
+use Tests\TestCase;
+
+class PelaporanTest extends TestCase
+{
+    use RefreshDatabase, BuatData;
+
+    public function test_laporan_surat_dapat_difilter(): void
+    {
+        $tu = User::factory()->staf()->create();
+        $surat = $this->suratMasuk($tu);
+        $lain = $this->suratMasuk($tu, ['instansi_id' => $this->instansi('Dinas Kesehatan Kab. Bogor')->id]);
+
+        $this->actingAs($tu)
+            ->get(route('laporan.index', ['jenis' => 'masuk', 'instansi_id' => $surat->instansi_id]))
+            ->assertOk()
+            ->assertSee($surat->perihal)
+            ->assertDontSee($lain->perihal);
+    }
+
+    public function test_ekspor_excel_menghasilkan_csv(): void
+    {
+        $tu = User::factory()->staf()->create();
+        $surat = $this->suratMasuk($tu);
+
+        $response = $this->actingAs($tu)->get(route('laporan.ekspor', ['jenis' => 'masuk']));
+
+        $response->assertOk();
+        $this->assertStringContainsString('text/csv', $response->headers->get('content-type'));
+
+        $isi = $response->streamedContent();
+        $this->assertStringContainsString($surat->no_agenda, $isi);
+        $this->assertStringContainsString('No. Agenda', $isi);
+    }
+
+    public function test_ekspor_pdf_menghasilkan_berkas_pdf(): void
+    {
+        $tu = User::factory()->staf()->create();
+        $this->suratMasuk($tu);
+
+        $response = $this->actingAs($tu)->get(route('laporan.pdf', ['jenis' => 'masuk']));
+
+        $response->assertOk();
+        $this->assertSame('application/pdf', $response->headers->get('content-type'));
+        $this->assertStringStartsWith('%PDF', $response->getContent());
+    }
+
+    public function test_laporan_tindak_lanjut_menampilkan_status_unit(): void
+    {
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit('UMPEG');
+        $surat = $this->suratMasuk($tu);
+        $this->disposisi($surat, $pimpinan, [$unit]);
+
+        $this->actingAs($tu)
+            ->get(route('laporan.tindak-lanjut'))
+            ->assertOk()
+            ->assertSee($surat->no_agenda)
+            ->assertSee($unit->nama);
+    }
+}

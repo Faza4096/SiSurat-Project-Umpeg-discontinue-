@@ -1,0 +1,7 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+class Penomoran extends Model {
+    protected $table = 'penomoran';
+    protected $fillable = ['unit_id', 'jenis', 'tahun', 'terakhir'];
+}
