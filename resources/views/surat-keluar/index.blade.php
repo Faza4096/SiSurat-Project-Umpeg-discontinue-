@@ -75,7 +75,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="min-w-[860px] divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
                         <th class="gov-th">Nomor Surat</th>

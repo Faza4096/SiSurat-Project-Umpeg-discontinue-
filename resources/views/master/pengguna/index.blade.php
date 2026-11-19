@@ -1,7 +1,7 @@
 @extends('layouts.sisurat')
 
 @section('judul', 'Pengguna')
-@section('subjudul', 'Kelola akun aparatur beserta peran dan unit kerjanya.')
+@section('subjudul', 'Akun aparatur, peran, dan unit kerjanya.')
 
 @section('aksi')
     <a href="{{ route('pengguna.create') }}" class="gov-btn"><x-icon name="plus" class="h-4 w-4" /> Tambah Pengguna</a>

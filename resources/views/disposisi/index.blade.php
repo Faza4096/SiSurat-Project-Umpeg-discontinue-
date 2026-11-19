@@ -1,7 +1,7 @@
 @extends('layouts.sisurat')
 
 @section('judul', 'Disposisi')
-@section('subjudul', 'Daftar disposisi beserta status tindak lanjut unit kerja.')
+@section('subjudul', 'Disposisi dan status tindak lanjut tiap unit kerja.')
 
 @section('aksi')
     <a href="{{ route('laporan.tindak-lanjut') }}" class="gov-btn-outline">
@@ -213,7 +213,7 @@
                     <x-icon name="forward" class="h-6 w-6" />
                 </span>
                 <p class="mt-3 text-sm font-semibold text-slate-600">Belum ada disposisi</p>
-                <p class="mt-1 text-xs text-slate-500">Disposisi dibuat dari antrean di atas atau halaman detail surat masuk.</p>
+                <p class="mt-1 text-xs text-slate-500">Disposisi dibuat dari antrean di atas atau halaman detail surat.</p>
             </div>
         @endforelse
     </div>

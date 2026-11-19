@@ -4,10 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Penyempurnaan alur kerja surat.
- * Migrasi lama tidak diubah agar riwayat tetap utuh.
- */
+/** Perubahan alur kerja surat; migrasi lama tidak diubah agar riwayat utuh. */
 return new class extends Migration
 {
     public function up(): void

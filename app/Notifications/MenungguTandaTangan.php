@@ -40,11 +40,11 @@ class MenungguTandaTangan extends Notification
             ->subject(($this->mode === 'revisi' ? 'Perlu revisi: ' : 'Menunggu tanda tangan: ') . $this->surat->no_surat);
 
         if ($this->mode === 'revisi') {
-            $mail->line('Surat berikut dikembalikan untuk direvisi:')
+            $mail->line('Surat dikembalikan untuk revisi:')
                 ->line($this->surat->no_surat . ' — ' . $this->surat->hal)
                 ->line('Catatan revisi: ' . ($this->surat->catatan_revisi ?? '-'));
         } else {
-            $mail->line('Terdapat surat keluar yang menunggu persetujuan dan tanda tangan Anda:')
+            $mail->line('Surat keluar menunggu persetujuan dan tanda tangan:')
                 ->line($this->surat->no_surat . ' — ' . $this->surat->hal)
                 ->line('Diajukan oleh: ' . ($this->surat->pembuat?->name ?? 'Staf'));
         }

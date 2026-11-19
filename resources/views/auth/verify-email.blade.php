@@ -1,10 +1,10 @@
 <x-guest-layout judul="Verifikasi Email">
     <x-auth.heading eyebrow="Verifikasi Akun" judul="Verifikasi Email"
-                    keterangan="Kami telah mengirim tautan verifikasi ke alamat email akun Anda. Buka tautan tersebut untuk mengaktifkan akses portal." />
+                    keterangan="Tautan verifikasi telah dikirim ke email akun. Buka tautan untuk mengaktifkan akses." />
 
     @if (session('status') == 'verification-link-sent')
         <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-            Tautan verifikasi baru telah dikirim ke alamat email akun Anda.
+            Tautan verifikasi baru telah dikirim.
         </div>
     @endif
 

@@ -39,9 +39,8 @@ class SuratMasukPolicy
     }
 
     /**
-     * Hapus permanen hanya untuk administrator, untuk surat yang sudah tidak
-     * dipakai. Disposisi, lampiran, dan berkasnya ikut terhapus sehingga
-     * tindakan ini tidak dapat dibatalkan.
+     * Khusus administrator: disposisi, lampiran, dan berkasnya ikut terhapus
+     * sehingga tidak dapat dibatalkan.
      */
     public function hapusPermanen(User $user, SuratMasuk $surat): bool
     {

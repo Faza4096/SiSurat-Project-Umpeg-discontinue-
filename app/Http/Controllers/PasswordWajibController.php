@@ -33,6 +33,6 @@ class PasswordWajibController extends Controller
 
         LogAktivitas::catat('pengguna.ganti_sandi', 'Kata sandi default diganti');
 
-        return redirect()->route('dashboard')->with('ok', 'Kata sandi berhasil diperbarui. Selamat bekerja.');
+        return redirect()->route('dashboard')->with('ok', 'Kata sandi berhasil diperbarui.');
     }
 }

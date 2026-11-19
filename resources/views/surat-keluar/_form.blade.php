@@ -90,19 +90,19 @@
         <div class="gov-card p-5">
             <p class="gov-card-title">Penomoran Otomatis</p>
             <p class="mt-2 text-xs leading-relaxed text-slate-500">
-                Nomor surat dibentuk dari kode klasifikasi, nomor urut unit kerja, dan kode unit —
-                contoh <span class="font-mono font-semibold text-gov-800">400.7/868-TU</span>.
-                Nomor urut bertambah otomatis dan aman dari nomor ganda.
+                Nomor surat dibentuk dari kode klasifikasi, nomor urut unit, dan kode unit, misalnya
+                <span class="font-mono font-semibold text-gov-800">400.7/868-TU</span>.
+                Nomor urut bertambah otomatis tanpa duplikat.
             </p>
         </div>
         <div class="gov-card p-5">
             <p class="gov-card-title">Alur Persetujuan</p>
             <ol class="mt-2 space-y-2 text-xs text-slate-500">
-                <li class="flex gap-2"><span class="font-bold text-gov-700">1.</span> Staf membuat draf dan nomor otomatis.</li>
+                <li class="flex gap-2"><span class="font-bold text-gov-700">1.</span> Draf dibuat dengan nomor otomatis.</li>
                 <li class="flex gap-2"><span class="font-bold text-gov-700">2.</span> Draf diajukan untuk persetujuan.</li>
-                <li class="flex gap-2"><span class="font-bold text-gov-700">3.</span> Staf menyetujui atau meminta revisi.</li>
-                <li class="flex gap-2"><span class="font-bold text-gov-700">4.</span> Staf mengunggah berkas final dan mencatat pengiriman.</li>
-                <li class="flex gap-2"><span class="font-bold text-gov-700">5.</span> Surat diarsipkan sebagai arsip dinamis.</li>
+                <li class="flex gap-2"><span class="font-bold text-gov-700">3.</span> Disetujui atau dikembalikan untuk revisi.</li>
+                <li class="flex gap-2"><span class="font-bold text-gov-700">4.</span> Berkas final diunggah dan pengiriman dicatat.</li>
+                <li class="flex gap-2"><span class="font-bold text-gov-700">5.</span> Surat diarsipkan.</li>
             </ol>
         </div>
     </div>

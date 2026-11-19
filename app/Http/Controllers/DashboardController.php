@@ -121,7 +121,7 @@ class DashboardController extends Controller
             ],
             [
                 'judul' => 'Belum diarsipkan',
-                'catatan' => 'Tindak lanjut selesai atau surat sudah dikirim, tetapi arsip belum dicatat.',
+                'catatan' => 'Sudah selesai atau terkirim, arsip belum dicatat.',
                 'items' => $belumArsip,
                 'kosong' => 'Semua surat sudah diarsipkan.',
                 'tautan' => null,

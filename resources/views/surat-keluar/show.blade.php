@@ -116,13 +116,12 @@
         </div>
 
         <div class="space-y-4">
-            {{-- Aksi persetujuan --}}
             @if ($s->status === 'menunggu_ttd' && auth()->user()->punyaRole('staf', 'admin'))
                 <div class="gov-card border-gold-200 p-5">
                     <p class="gov-card-title">Persetujuan Surat</p>
                     <p class="mt-1 text-xs leading-relaxed text-slate-500">
-                        Periksa isi surat. ACC menetapkan nomor final, mengubah status menjadi disetujui, dan
-                        menerbitkan kartu disposisi PDF untuk unit Tata Usaha.
+                        ACC menetapkan nomor final, mengubah status menjadi disetujui, dan menerbitkan kartu
+                        disposisi untuk unit Tata Usaha.
                     </p>
                     @can('acc', $s)
                         <form method="POST" action="{{ route('surat-keluar.acc', $s) }}" class="mt-3">
@@ -141,7 +140,6 @@
                 </div>
             @endif
 
-            {{-- Kartu disposisi hasil ACC --}}
             @if ($s->disposisiKartu)
                 <div class="gov-card p-5">
                     <p class="gov-card-title">Kartu Disposisi</p>
@@ -161,7 +159,6 @@
                 </div>
             @endif
 
-            {{-- Unggah berkas final & pengiriman --}}
             @if (auth()->user()->can('kirim', $s))
                 <div class="gov-card p-5">
                     <p class="gov-card-title">Berkas Final &amp; Pengiriman</p>
@@ -199,7 +196,6 @@
                 </div>
             @endif
 
-            {{-- Berkas final & pengiriman tersimpan --}}
             @if ($s->file_final_path || $s->penerima)
                 <div class="gov-card p-5">
                     <p class="gov-card-title">Pengiriman</p>
@@ -231,22 +227,21 @@
             <div class="gov-card p-5">
                 <p class="gov-card-title">Alur Persetujuan</p>
                 <ol class="mt-3 space-y-2 text-xs text-slate-500">
-                    <li class="flex gap-2"><span class="font-bold text-gov-700">1.</span> Staf menyusun draf dan nomor otomatis.</li>
+                    <li class="flex gap-2"><span class="font-bold text-gov-700">1.</span> Draf dibuat dengan nomor otomatis.</li>
                     <li class="flex gap-2"><span class="font-bold text-gov-700">2.</span> Surat diajukan untuk persetujuan.</li>
-                    <li class="flex gap-2"><span class="font-bold text-gov-700">3.</span> Staf menyetujui atau meminta revisi.</li>
-                    <li class="flex gap-2"><span class="font-bold text-gov-700">4.</span> Staf mengunggah berkas final dan mencatat pengiriman.</li>
+                    <li class="flex gap-2"><span class="font-bold text-gov-700">3.</span> Disetujui atau dikembalikan untuk revisi.</li>
+                    <li class="flex gap-2"><span class="font-bold text-gov-700">4.</span> Berkas final diunggah dan pengiriman dicatat.</li>
                     <li class="flex gap-2"><span class="font-bold text-gov-700">5.</span> Surat diarsipkan.</li>
                 </ol>
             </div>
         </div>
 
         @can('hapusPermanen', $s)
-            <div class="mt-6 rounded-xl border border-red-200 bg-red-50/70 p-5">
+            <div class="mt-2 rounded-xl border border-red-200 bg-red-50/70 p-5 lg:col-span-3">
                 <p class="text-sm font-bold text-red-800">Zona berbahaya</p>
                 <p class="mt-1 max-w-2xl text-xs leading-relaxed text-red-700">
-                    Berbeda dengan <em>Hapus</em> biasa yang hanya memindahkan surat ke arsip terhapus, hapus permanen
-                    membuang surat ini beserta kartu disposisi, lampiran, dan berkas final PDF dari basis data serta
-                    penyimpanan berkas. Tindakan ini tidak dapat dibatalkan.
+                    Berbeda dengan <em>Hapus</em> yang hanya memindahkan surat ke arsip terhapus, tindakan ini
+                    membuang surat beserta kartu disposisi, lampiran, dan berkas final PDF. Tidak dapat dibatalkan.
                 </p>
                 <a href="{{ route('surat-keluar.hapus-permanen.form', $s) }}"
                    class="mt-3 inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">

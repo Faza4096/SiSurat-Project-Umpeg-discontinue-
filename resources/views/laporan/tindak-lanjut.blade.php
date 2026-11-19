@@ -1,7 +1,7 @@
 @extends('layouts.sisurat')
 
 @section('judul', 'Laporan Tindak Lanjut')
-@section('subjudul', 'Rekap status disposisi per unit kerja, termasuk bukti tindak lanjut.')
+@section('subjudul', 'Rekap status disposisi per unit kerja beserta buktinya.')
 
 @section('aksi')
     <a href="{{ route('laporan.index') }}" class="gov-btn-outline">
@@ -62,7 +62,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="min-w-[820px] divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
                         <th class="gov-th">Agenda / Perihal</th>

@@ -57,7 +57,6 @@
 <table class="kd-sheet">
     <tr>
         <td>
-            {{-- Kop instansi --}}
             <table class="kd-kop">
                 <tr>
                     <td class="kd-kop-logo">
@@ -78,7 +77,6 @@
             <div class="kd-garis-ganda"></div>
             <div class="kd-judul">KARTU DISPOSISI</div>
 
-            {{-- Blok isian --}}
             <table class="kd-blok">
                 <tr>
                     <td class="kd-setengah">

@@ -1,6 +1,6 @@
 <section>
     <h2 class="gov-card-title">Kata Sandi</h2>
-    <p class="gov-help">Gunakan kata sandi yang panjang dan tidak dipakai pada layanan lain.</p>
+    <p class="gov-help">Gunakan kata sandi panjang yang tidak dipakai di layanan lain.</p>
 
     <form method="post" action="{{ route('password.update') }}" class="mt-5 space-y-4">
         @csrf

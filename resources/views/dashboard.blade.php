@@ -15,19 +15,19 @@
 @endsection
 
 @section('isi')
-    <dl class="gov-card mb-8 grid grid-cols-1 sm:grid-cols-4">
-        <div class="flex items-baseline justify-between gap-3 border-b border-slate-100 px-5 py-3 sm:block sm:border-b-0 sm:py-4">
+    <dl class="gov-card mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="flex items-baseline justify-between gap-3 border-b border-slate-100 px-5 py-3 sm:block sm:border-b sm:py-4 lg:border-b-0">
             <dt class="gov-eyebrow">Bulan ini:</dt>
             <dd class="text-[12px] leading-snug text-slate-500 sm:mt-1">{{ now()->translatedFormat('F Y') }}</dd>
         </div>
-        <div class="flex items-baseline justify-between gap-3 border-b border-slate-100 px-5 py-3 sm:block sm:border-b-0 sm:border-l sm:border-slate-100 sm:py-4">
+        <div class="flex items-baseline justify-between gap-3 border-b border-slate-100 px-5 py-3 sm:block sm:border-b sm:border-l sm:border-slate-100 sm:py-4 lg:border-b-0">
             <dt class="gov-eyebrow">Surat masuk</dt>
             <dd class="sm:mt-2">
                 <a href="{{ route('surat-masuk.index') }}" aria-label="Buka daftar surat masuk"
                    class="gov-stat text-[19px] underline-offset-4 hover:text-gov-700 hover:underline sm:text-[24px]">{{ number_format($ringkasan['masuk'], 0, ',', '.') }}</a>
             </dd>
         </div>
-        <div class="flex items-baseline justify-between gap-3 border-b border-slate-100 px-5 py-3 sm:block sm:border-b-0 sm:border-l sm:border-slate-100 sm:py-4">
+        <div class="flex items-baseline justify-between gap-3 border-b border-slate-100 px-5 py-3 sm:block sm:border-b sm:border-slate-100 sm:py-4 lg:border-b-0 lg:border-l">
             <dt class="gov-eyebrow">Surat keluar</dt>
             <dd class="sm:mt-2">
                 <a href="{{ route('surat-keluar.index') }}" aria-label="Buka daftar surat keluar"
@@ -62,7 +62,7 @@
     @if ($peran === 'admin')
         <div class="mb-8 grid gap-6 lg:grid-cols-12">
             <section class="min-w-0 lg:col-span-5 xl:col-span-4">
-                <div class="border border-slate-200 bg-white">
+                <div class="gov-card overflow-hidden">
                     <div class="border-b border-slate-100 px-5 py-3">
                         <h2 class="gov-section-title">Akun Pengguna</h2>
                     </div>
@@ -108,7 +108,7 @@
                         Semua log <x-icon name="arrow-right" class="h-3 w-3" />
                     </a>
                 </div>
-                <div class="mt-1 overflow-x-auto border border-slate-200 bg-white">
+                <div class="gov-card mt-1 overflow-x-auto">
                     <table class="gov-table min-w-[520px]">
                         <thead>
                             <tr class="text-[10px] uppercase tracking-[0.1em] text-slate-500">
@@ -157,8 +157,8 @@
                     @if ($b['items']->isEmpty())
                         <p class="mt-2 border border-dashed border-slate-200 bg-white px-4 py-4 text-[13px] text-slate-500">{{ $b['kosong'] }}</p>
                     @else
-                        <div class="mt-1 overflow-x-auto border border-slate-200 bg-white">
-                            <table class="gov-table min-w-full sm:min-w-[560px]">
+                        <div class="gov-card mt-1 overflow-x-auto">
+                            <table class="gov-table min-w-[560px]">
                                 <thead>
                                     <tr>
                                         <th class="gov-th whitespace-normal sm:whitespace-nowrap">Nomor / Perihal</th>

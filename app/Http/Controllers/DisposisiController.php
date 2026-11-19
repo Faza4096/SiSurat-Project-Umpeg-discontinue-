@@ -75,7 +75,7 @@ class DisposisiController extends Controller
         $this->kirimNotifikasi($disposisi, $data['tujuan']);
 
         return redirect()->route('surat-masuk.show', $suratMasuk)
-            ->with('ok', 'Surat di-ACC. Kartu disposisi PDF dibuat dan diteruskan ke unit tujuan.');
+            ->with('ok', 'Surat di-ACC. Kartu disposisi dibuat dan diteruskan ke unit tujuan.');
     }
 
     /** Simpan disposisi dari form lama (tanpa halaman ACC). */
@@ -262,8 +262,6 @@ class DisposisiController extends Controller
         return back()->with('ok', 'Disposisi dibatalkan.');
     }
 
-    /* ------------------------------------------------------------------ */
-
     private function buatDisposisi(User $pembuat, array $data, SuratMasuk|SuratKeluar $surat, string $kolom): Disposisi
     {
         $disposisi = Disposisi::create([
@@ -309,11 +307,7 @@ class DisposisiController extends Controller
         $disposisi->load('suratMasuk.instansi', 'suratKeluar.unit', 'tujuan.unit', 'pembuat');
     }
 
-    /**
-     * Hitung status surat dari seluruh tujuan disposisi aktif:
-     * semua selesai → selesai; ada yang diproses/selesai → diproses;
-     * semua belum → didisposisi; belum ada disposisi → diterima.
-     */
+    /** Semua selesai → selesai; ada diproses/selesai → diproses; semua belum → didisposisi. */
     private function hitungStatusSurat(SuratMasuk $surat): string
     {
         $disposisiIds = $surat->disposisi()->pluck('id');
@@ -340,9 +334,8 @@ class DisposisiController extends Controller
     }
 
     /**
-     * Surat yang baru dicatat dan belum masuk alur disposisi: surat masuk
-     * berstatus diterima serta surat keluar yang belum disetujui.
-     * Staf tidak melihat antrean ini karena belum ada disposisi untuk unitnya.
+     * Surat baru yang belum masuk alur disposisi: surat masuk berstatus diterima
+     * dan surat keluar yang belum disetujui.
      */
     private function menungguDisposisi(User $user): array
     {

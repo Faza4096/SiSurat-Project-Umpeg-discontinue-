@@ -47,10 +47,6 @@ class Disposisi extends Model
         return $this->tgl_penyelesaian !== null && $this->tgl_penyelesaian->isPast();
     }
 
-    /* ------------------------------------------------------------------
-     | Data untuk kartu disposisi (surat masuk maupun surat keluar)
-     * ------------------------------------------------------------------ */
-
     public function nomorSurat(): string
     {
         return $this->suratMasuk?->no_agenda

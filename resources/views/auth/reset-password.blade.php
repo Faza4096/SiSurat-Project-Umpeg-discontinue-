@@ -1,6 +1,6 @@
 <x-guest-layout judul="Reset Kata Sandi">
     <x-auth.heading eyebrow="Pemulihan Akun" judul="Reset Kata Sandi"
-                    keterangan="Tentukan kata sandi baru untuk akun dinas Anda, lalu masuk kembali ke portal." />
+                    keterangan="Tentukan kata sandi baru untuk akun dinas." />
 
     <form method="POST" action="{{ route('password.store') }}" class="space-y-4">
         @csrf

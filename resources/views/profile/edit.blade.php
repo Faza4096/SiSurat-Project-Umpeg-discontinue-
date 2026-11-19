@@ -1,7 +1,7 @@
 @extends('layouts.sisurat')
 
 @section('judul', 'Profil Saya')
-@section('subjudul', 'Perbarui informasi akun dan kata sandi Anda.')
+@section('subjudul', 'Perbarui data akun dan kata sandi.')
 
 @section('isi')
     <div class="grid gap-4 lg:grid-cols-3">
@@ -34,8 +34,8 @@
             <div class="gov-card p-5">
                 <p class="gov-card-title">Penghapusan Akun</p>
                 <p class="mt-2 text-xs leading-relaxed text-slate-500">
-                    Akun pegawai tidak dapat dihapus sendiri agar jejak surat dan disposisi tetap utuh.
-                    Hubungi administrator bila akun perlu dinonaktifkan.
+                    Akun tidak dapat dihapus sendiri agar jejak surat dan disposisi tetap utuh.
+                    Hubungi administrator untuk menonaktifkannya.
                 </p>
             </div>
         </div>

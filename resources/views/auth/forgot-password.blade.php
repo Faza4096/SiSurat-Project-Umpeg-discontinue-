@@ -1,6 +1,6 @@
 <x-guest-layout judul="Lupa Kata Sandi">
     <x-auth.heading eyebrow="Pemulihan Akun" judul="Lupa Kata Sandi"
-                    keterangan="Masukkan email dinas Anda. Kami akan mengirim tautan untuk membuat kata sandi baru." />
+                    keterangan="Masukkan email dinas untuk menerima tautan pembuatan kata sandi baru." />
 
     <x-auth-session-status class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700" :status="session('status')" />
 
@@ -20,6 +20,6 @@
     </p>
 
     <x-auth.footnote>
-        <p>Tautan pemulihan hanya berlaku terbatas dan dapat dipakai satu kali. Bila email belum masuk, periksa folder spam.</p>
+        <p>Tautan hanya berlaku sekali dan dalam waktu terbatas. Bila email belum masuk, periksa folder spam.</p>
     </x-auth.footnote>
 </x-guest-layout>

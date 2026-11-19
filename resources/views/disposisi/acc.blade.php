@@ -11,9 +11,8 @@
     <form method="POST" action="{{ route('disposisi.acc', $s) }}" class="grid gap-4 lg:grid-cols-5">
         @csrf
 
-        {{-- Data surat (terisi otomatis, tidak diubah) --}}
         <div class="lg:col-span-2">
-            <div class="border border-slate-200 bg-white">
+            <div class="gov-card overflow-hidden">
                 <div class="border-b border-slate-100 px-5 py-3">
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-600">Identitas Surat</p>
                 </div>
@@ -52,15 +51,14 @@
                     </div>
                 </dl>
                 <p class="border-t border-slate-100 px-5 py-3 text-[11px] leading-relaxed text-slate-500">
-                    Data di atas diambil otomatis dari surat. Isi bagian disposisi, lalu simpan —
-                    sistem membuat disposisi, mengubah status surat, dan menerbitkan PDF kartu.
+                    Data diambil otomatis dari surat. Setelah disimpan, status surat diperbarui
+                    dan PDF kartu diterbitkan.
                 </p>
             </div>
         </div>
 
-        {{-- Isian disposisi --}}
         <div class="lg:col-span-3">
-            <div class="border border-slate-200 bg-white">
+            <div class="gov-card overflow-hidden">
                 <div class="border-b border-slate-100 px-5 py-3">
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-600">Isi Disposisi</p>
                 </div>
@@ -79,7 +77,7 @@
                         <label class="gov-label" for="instruksi">Instruksi / Informasi</label>
                         <textarea id="instruksi" name="instruksi" rows="4" required class="gov-input"
                                   placeholder="Contoh: Tindak lanjuti, koordinasikan dengan bidang terkait, laporkan hasilnya.">{{ old('instruksi') }}</textarea>
-                        <p class="gov-help">Teks bebas; tercetak pada kolom Instruksi/Informasi di kartu.</p>
+                        <p class="gov-help">Tercetak pada kolom Instruksi/Informasi di kartu.</p>
                     </div>
                     <div class="sm:col-span-2">
                         <span class="gov-label">Diteruskan Kepada</span>

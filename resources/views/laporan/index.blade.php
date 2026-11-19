@@ -1,7 +1,7 @@
 @extends('layouts.sisurat')
 
 @section('judul', 'Laporan & Ekspor')
-@section('subjudul', 'Rekap arsip surat dengan filter tanggal, instansi, dan klasifikasi.')
+@section('subjudul', 'Rekap arsip surat menurut tanggal, instansi, dan klasifikasi.')
 
 @section('aksi')
     <a href="{{ route('laporan.tindak-lanjut') }}" class="gov-btn-outline">
@@ -83,11 +83,11 @@
     <div class="gov-card overflow-hidden">
         <div class="gov-card-head">
             <p class="gov-card-title">{{ $jenis === 'masuk' ? 'Rekap Surat Masuk' : 'Rekap Surat Keluar' }}</p>
-            <p class="text-xs text-slate-500">Data mengikuti hak akses Anda</p>
+            <p class="text-xs text-slate-500">Data sesuai hak akses</p>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="min-w-[880px] divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
                         <th class="gov-th">Nomor</th>

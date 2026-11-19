@@ -97,8 +97,8 @@
 
         <div class="gov-card p-5">
             <p class="text-xs leading-relaxed text-slate-500">
-                Nomor agenda dibuat otomatis mengikuti pola <span class="font-mono font-semibold text-gov-800">AGD/0001/XI/2026</span>
-                berdasarkan unit kerja pencatat dan tahun berjalan.
+                Nomor agenda otomatis mengikuti pola <span class="font-mono font-semibold text-gov-800">AGD/0001/XI/2026</span>
+                menurut unit pencatat dan tahun berjalan.
             </p>
         </div>
     </div>

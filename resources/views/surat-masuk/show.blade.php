@@ -42,7 +42,6 @@
             </div>
         </div>
 
-        {{-- Alur status --}}
         <div class="grid gap-2 border-b border-slate-100 px-6 py-4 sm:grid-cols-5">
             @foreach ($langkah as $i => $tahap)
                 @php $aktif = $i <= $posisi; @endphp
@@ -109,7 +108,6 @@
         </dl>
     </div>
 
-    {{-- Lampiran --}}
     <div class="gov-card mb-4">
         <div class="gov-card-head">
             <p class="gov-card-title">Lampiran &amp; Scan</p>
@@ -160,7 +158,6 @@
         </div>
     </div>
 
-    {{-- Arsip & balasan --}}
     <div class="mb-4 grid gap-4 lg:grid-cols-2">
         <div class="gov-card p-5">
             <p class="gov-card-title">Arsip Fisik</p>
@@ -168,7 +165,7 @@
                 <p class="mt-2 text-sm text-slate-600">Disimpan di: <span class="font-semibold">{{ $s->lokasi_arsip }}</span></p>
                 <p class="mt-1 text-xs text-slate-400">{{ $s->diarsipkan_pada?->translatedFormat('d F Y H:i') }}</p>
             @elseif (auth()->user()->can('arsipkan', $s))
-                <p class="mt-1 text-xs text-slate-500">Tindak lanjut selesai — catat lokasi penyimpanan berkas fisik.</p>
+                <p class="mt-1 text-xs text-slate-500">Tindak lanjut selesai. Catat lokasi penyimpanan berkas fisik.</p>
                 <form method="POST" action="{{ route('surat-masuk.arsipkan', $s) }}" class="mt-3 flex flex-wrap gap-2">
                     @csrf @method('PATCH')
                     <input name="lokasi_arsip" required placeholder="Contoh: Lemari B-2, Rak 3" class="gov-input flex-1 text-sm">
@@ -176,7 +173,7 @@
                 </form>
             @else
                 <p class="mt-2 text-xs leading-relaxed text-slate-500">
-                    Surat dapat diarsipkan setelah semua tindak lanjut disposisi dinyatakan selesai.
+                    Surat dapat diarsipkan setelah semua tindak lanjut selesai.
                 </p>
             @endif
         </div>
@@ -207,8 +204,8 @@
             <div class="min-w-0">
                 <p class="gov-card-title">ACC &amp; Disposisi</p>
                 <p class="mt-1 max-w-xl text-xs leading-relaxed text-slate-500">
-                    Form disposisi terisi otomatis dari data surat. Setelah disimpan, status surat menjadi
-                    <em>didisposisi</em>, kartu disposisi PDF diterbitkan, dan dilampirkan ke notifikasi unit tujuan.
+                    Isian terisi otomatis dari data surat. Setelah disimpan, status menjadi <em>didisposisi</em>
+                    dan kartu PDF dikirim ke unit tujuan.
                 </p>
             </div>
             @can('acc', $s)
@@ -328,7 +325,7 @@
                 <p class="text-sm font-semibold text-slate-600">Belum ada disposisi</p>
                 <p class="mt-1 text-xs text-slate-500">
                     @if (auth()->user()->punyaRole('staf', 'admin'))
-                        Isi formulir disposisi di atas untuk meneruskan surat ke unit kerja terkait.
+                        Isi formulir di atas untuk meneruskan surat ke unit kerja.
                     @else
                         Surat ini belum didisposisikan.
                     @endif
@@ -341,9 +338,9 @@
         <div class="mt-6 rounded-xl border border-red-200 bg-red-50/70 p-5">
             <p class="text-sm font-bold text-red-800">Zona berbahaya</p>
             <p class="mt-1 max-w-2xl text-xs leading-relaxed text-red-700">
-                Berbeda dengan <em>Hapus</em> biasa yang hanya memindahkan surat ke arsip terhapus, hapus permanen
-                membuang surat ini beserta {{ $s->disposisi()->withTrashed()->count() }} disposisi, lampiran, kartu PDF,
-                dan bukti tindak lanjut dari basis data serta penyimpanan berkas. Tindakan ini tidak dapat dibatalkan.
+                Berbeda dengan <em>Hapus</em> yang hanya memindahkan surat ke arsip terhapus, tindakan ini membuang
+                surat beserta {{ $s->disposisi()->withTrashed()->count() }} disposisi, lampiran, kartu PDF, dan bukti
+                tindak lanjut. Tidak dapat dibatalkan.
             </p>
             <a href="{{ route('surat-masuk.hapus-permanen.form', $s) }}"
                class="mt-3 inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">

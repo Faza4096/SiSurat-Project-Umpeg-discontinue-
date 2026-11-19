@@ -1,7 +1,7 @@
 @extends('layouts.sisurat')
 
 @section('judul', 'Pengaturan Instansi')
-@section('subjudul', 'Nama, unit, alamat, dan lambang yang dipakai di seluruh aplikasi serta kop kartu disposisi.')
+@section('subjudul', 'Nama, unit, alamat, dan lambang untuk aplikasi dan kop kartu disposisi.')
 
 @section('isi')
     <form method="POST" action="{{ route('pengaturan.update') }}" enctype="multipart/form-data" class="grid items-start gap-4 lg:grid-cols-3">
@@ -23,7 +23,7 @@
                 <div class="sm:col-span-2">
                     <label class="gov-label" for="unit">Unit Kerja</label>
                     <input id="unit" name="unit" value="{{ old('unit', $p->unit) }}" class="gov-input" placeholder="Kecamatan Ciomas">
-                    <p class="gov-help">Tampil di bawah nama instansi pada sidebar, footer, halaman login, dan judul PDF laporan.</p>
+                    <p class="gov-help">Tampil di sidebar, footer, halaman masuk, dan judul PDF laporan.</p>
                 </div>
                 <div class="sm:col-span-2">
                     <label class="gov-label" for="alamat">Alamat</label>
@@ -76,7 +76,7 @@
             </div>
 
             <div class="gov-card p-5 text-[11.5px] leading-relaxed text-slate-500">
-                Pengaturan ini dipakai kop kartu disposisi, sidebar, footer, halaman login, dan judul PDF laporan. Pratinjau kartu ada di
+                Dipakai pada kop kartu disposisi, sidebar, footer, halaman masuk, dan judul PDF laporan. Pratinjau kartu ada di
                 <a href="{{ route('disposisi.index') }}" class="gov-link">menu Disposisi</a>.
             </div>
         </div>

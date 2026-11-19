@@ -5,8 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Unit kerja pemilik portal, dipakai bersama nama instansi di sidebar, footer,
- * halaman login, dan judul PDF laporan.
+ * Unit kerja pemilik portal, dipakai di sidebar, footer, halaman login, dan
+ * judul PDF laporan.
  */
 return new class extends Migration
 {

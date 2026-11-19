@@ -9,9 +9,8 @@ use App\Models\UnitKerja;
 use Illuminate\Database\Seeder;
 
 /**
- * Data master untuk instalasi baru. Akun tidak dibuat di sini: administrator
- * pertama dibuat dengan `php artisan sisurat:buat-admin` agar tidak ada sandi
- * bawaan yang diketahui orang lain.
+ * Data master instalasi baru. Akun sengaja tidak dibuat di sini: administrator
+ * pertama lewat `php artisan sisurat:buat-admin` agar tidak ada sandi bawaan.
  */
 class DatabaseSeeder extends Seeder
 {

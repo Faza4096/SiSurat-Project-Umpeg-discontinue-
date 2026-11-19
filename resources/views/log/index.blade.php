@@ -1,7 +1,7 @@
 @extends('layouts.sisurat')
 
 @section('judul', 'Log Aktivitas')
-@section('subjudul', 'Jejak audit seluruh aktivitas registrasi surat dan disposisi.')
+@section('subjudul', 'Jejak audit aktivitas registrasi surat dan disposisi.')
 
 @section('isi')
     <form method="GET" class="gov-card mb-4 p-4">
@@ -33,7 +33,7 @@
             <p class="text-xs text-slate-500">{{ $items->total() }} catatan</p>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="min-w-[760px] divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
                         <th class="gov-th">Waktu</th>

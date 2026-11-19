@@ -6,9 +6,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Mencabut sesi aktif pengguna agar perangkat yang sudah masuk tidak tetap
- * login setelah sandinya diganti. Hanya berlaku untuk driver sesi basis data;
- * driver lain (file/redis) memerlukan penanganan tersendiri.
+ * Mencabut sesi aktif pengguna setelah sandinya diganti. Hanya berlaku untuk
+ * driver sesi basis data; driver lain (file/redis) perlu penanganan sendiri.
  */
 class SesiPenggunaService
 {

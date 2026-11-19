@@ -97,7 +97,6 @@ class SuratMasuk extends Model
             ->exists();
     }
 
-    /** Batasi daftar surat sesuai unit & sifat surat. */
     public function scopeTerlihatOleh(Builder $query, User $user): Builder
     {
         if ($user->punyaRole('admin', 'staf')) {

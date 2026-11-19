@@ -192,7 +192,7 @@ class SuratMasukController extends Controller
 
         LogAktivitas::catat('surat_masuk.arsip', "{$suratMasuk->no_agenda} → {$data['lokasi_arsip']}");
 
-        return back()->with('ok', 'Surat ditandai diarsipkan beserta lokasi arsip fisiknya.');
+        return back()->with('ok', 'Surat diarsipkan dan lokasi arsip fisik dicatat.');
     }
 
     /** Kelola lampiran/scan tambahan pada surat masuk. */

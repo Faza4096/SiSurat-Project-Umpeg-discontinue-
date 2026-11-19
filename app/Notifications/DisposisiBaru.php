@@ -38,13 +38,13 @@ class DisposisiBaru extends Notification
         $mail = (new MailMessage)
             ->subject('Disposisi baru: ' . $this->disposisi->nomorSurat())
             ->greeting('Yth. ' . $notifiable->name)
-            ->line('Anda menerima disposisi baru dari ' . ($this->disposisi->pembuat?->name ?? 'operator') . '.')
+            ->line('Disposisi baru dari ' . ($this->disposisi->pembuat?->name ?? 'operator') . '.')
             ->line('Nomor: ' . $this->disposisi->nomorSurat() . ' — ' . $this->disposisi->perihal())
             ->line('Dari: ' . $this->disposisi->asal())
             ->line('Instruksi: ' . $this->disposisi->instruksi)
             ->line('Batas penyelesaian: ' . ($this->disposisi->tgl_penyelesaian?->translatedFormat('d F Y') ?? 'tidak ditentukan'))
             ->action('Buka SiSurat', $this->tautan())
-            ->line('Kartu disposisi terlampir pada surel ini. Mohon ditindaklanjuti dan unggah bukti hasilnya.');
+            ->line('Kartu disposisi terlampir. Mohon ditindaklanjuti dan unggah bukti hasilnya.');
 
         $path = $this->disposisi->kartu_path;
 

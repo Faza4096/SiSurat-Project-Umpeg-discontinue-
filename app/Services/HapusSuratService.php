@@ -9,9 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Menghapus surat yang tidak dipakai lagi secara permanen. Baris basis data
- * dibuang dalam satu transaksi; berkas baru dihapus setelah commit agar tidak
- * ada berkas hilang ketika transaksi dibatalkan.
+ * Hapus permanen: baris basis data dibuang dalam satu transaksi, berkas baru
+ * dihapus setelah commit agar tidak ada berkas hilang saat transaksi batal.
  */
 class HapusSuratService
 {

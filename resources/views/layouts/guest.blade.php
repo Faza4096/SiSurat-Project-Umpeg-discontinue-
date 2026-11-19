@@ -39,8 +39,7 @@
                 Registrasi &amp; Disposisi<br><span class="text-gold-300">Surat Dinas Elektronik</span>
             </h1>
             <p class="mt-4 hidden text-sm leading-relaxed text-gov-100/80 lg:block">
-                Penomoran agenda otomatis, kartu disposisi siap cetak, pelacakan tindak lanjut, dan arsip digital
-                surat masuk serta surat keluar dalam satu portal terpadu.
+                Pencatatan surat masuk dan keluar, disposisi, tindak lanjut, serta arsip dalam satu aplikasi.
             </p>
         </div>
 
@@ -75,7 +74,7 @@
 
             <p class="mt-6 text-center text-[11px] leading-relaxed text-slate-400">
                 &copy; {{ now()->year }} {{ $identitas->nama }} · {{ $identitas->namaUnit() }}<br>
-                Gunakan akun dinas yang telah terdaftar. Aktivitas login tercatat pada log sistem.
+                Gunakan akun dinas terdaftar. Aktivitas masuk tercatat pada log sistem.
             </p>
         </div>
     </section>

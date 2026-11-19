@@ -7,8 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Header keamanan untuk seluruh respons. Selain middleware, header dipasang
- * ulang lewat handler pengecualian karena Kernel merender galat (403/404/500)
+ * Header keamanan seluruh respons, termasuk halaman galat yang dirender Kernel
  * di luar pipeline middleware.
  */
 class SecurityHeaders
@@ -29,10 +28,8 @@ class SecurityHeaders
     }
 
     /**
-     * Alpine mengevaluasi x-data lewat new Function sehingga 'unsafe-eval' masih
-     * diperlukan; bila kelak memakai build CSP-safe (@alpinejs/csp), hapus
-     * 'unsafe-eval'. Atribut style inline (lebar grafik, modal) memerlukan
-     * 'unsafe-inline' pada style-src.
+     * Alpine butuh 'unsafe-eval' (x-data lewat new Function); ganti dengan
+     * build CSP-safe (@alpinejs/csp) untuk menghapusnya.
      */
     private static function kebijakan(): string
     {

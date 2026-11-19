@@ -1,6 +1,6 @@
 <x-guest-layout judul="Konfirmasi Kata Sandi">
     <x-auth.heading eyebrow="Keamanan Akun" judul="Konfirmasi Kata Sandi"
-                    keterangan="Area ini dilindungi. Masukkan kata sandi Anda sekali lagi untuk melanjutkan." />
+                    keterangan="Masukkan kata sandi sekali lagi untuk melanjutkan." />
 
     <form method="POST" action="{{ route('password.confirm') }}" class="space-y-4">
         @csrf

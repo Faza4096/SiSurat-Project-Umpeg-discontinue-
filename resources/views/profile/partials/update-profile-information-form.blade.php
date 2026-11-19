@@ -1,6 +1,6 @@
 <section>
     <h2 class="gov-card-title">Informasi Profil</h2>
-    <p class="gov-help">Perbarui nama dan alamat email akun dinas Anda.</p>
+    <p class="gov-help">Nama dan email akun dinas.</p>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
         @csrf
@@ -37,7 +37,7 @@
         <div>
             <label for="current_password" class="gov-label">Kata Sandi Saat Ini</label>
             <input id="current_password" name="current_password" type="password" class="gov-input" autocomplete="current-password">
-            <p class="gov-help mt-1">Wajib diisi hanya bila Anda mengubah alamat email.</p>
+            <p class="gov-help mt-1">Wajib diisi bila email diubah.</p>
             <x-input-error class="mt-1.5 text-sm text-red-600" :messages="$errors->get('current_password')" />
         </div>
 

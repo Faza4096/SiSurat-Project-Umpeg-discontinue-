@@ -40,9 +40,8 @@ class AppServiceProvider extends ServiceProvider
         try {
             return PengaturanInstansi::current();
         } catch (QueryException $galat) {
-            // Hanya tabel yang belum dimigrasi yang boleh memakai nilai config.
-            // Galat lain (kolom hilang, koneksi putus) tetap diteruskan ke
-            // penanganan galat agar tidak tersamarkan sebagai halaman normal.
+            // Hanya tabel yang belum dimigrasi yang boleh memakai nilai config;
+            // galat lain diteruskan agar tidak tersamarkan sebagai halaman normal.
             if (Schema::hasTable('pengaturan_instansi')) {
                 throw $galat;
             }

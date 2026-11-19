@@ -43,11 +43,11 @@ class StatusTindakLanjut extends Notification
         return (new MailMessage)
             ->subject('Status tindak lanjut diperbarui: ' . $disposisi->nomorSurat())
             ->greeting('Yth. ' . $notifiable->name)
-            ->line('Status tindak lanjut disposisi untuk unit Anda diubah oleh ' . $this->oleh . '.')
+            ->line('Status tindak lanjut unit Anda diubah oleh ' . $this->oleh . '.')
             ->line('Nomor: ' . $disposisi->nomorSurat() . ' — ' . $disposisi->perihal())
             ->line('Status baru: ' . $this->label())
             ->action('Buka SiSurat', $disposisi->tautanSurat())
-            ->line('Mohon periksa kembali berkas dan bukti tindak lanjut unit Anda.');
+            ->line('Mohon periksa berkas dan bukti tindak lanjut unit Anda.');
     }
 
     private function label(): string

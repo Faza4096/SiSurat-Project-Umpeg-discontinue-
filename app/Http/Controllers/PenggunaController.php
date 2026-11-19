@@ -95,7 +95,7 @@ class PenggunaController extends Controller
             // Jejak surat harus tetap utuh: nonaktifkan, jangan hapus.
             $pengguna->update(['aktif' => false]);
 
-            return back()->with('ok', 'Pengguna memiliki riwayat surat sehingga hanya dinonaktifkan.');
+            return back()->with('ok', 'Akun memiliki riwayat surat, jadi hanya dinonaktifkan.');
         }
 
         if ($pengguna->punyaRole('admin') && User::whereHas('role', fn ($q) => $q->where('nama', 'admin'))->count() <= 1) {

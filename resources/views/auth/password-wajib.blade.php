@@ -1,6 +1,6 @@
 <x-guest-layout judul="Ganti Kata Sandi">
     <x-auth.heading eyebrow="Keamanan Akun" judul="Ganti Kata Sandi Anda"
-                    keterangan="Akun masih memakai kata sandi sementara. Demi keamanan arsip surat, ganti kata sandi sebelum melanjutkan." />
+                    keterangan="Akun masih memakai kata sandi sementara. Ganti kata sandi sebelum melanjutkan." />
 
     <form method="POST" action="{{ route('password.wajib.update') }}" class="space-y-4">
         @csrf

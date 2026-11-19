@@ -22,8 +22,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         // Email adalah pintu masuk pemulihan akun: mengubahnya wajib dikonfirmasi
-        // dengan kata sandi saat ini agar sesi yang dibajak tidak bisa mengambil
-        // alih akun secara permanen.
+        // agar sesi yang dibajak tidak bisa mengambil alih akun secara permanen.
         if ($request->validated('email') !== $user->email) {
             $request->validate([
                 'current_password' => ['required', 'current_password'],
@@ -44,8 +43,6 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    /*
-    | Penghapusan akun sendiri dinonaktifkan: akun pegawai hanya dikelola
-    | administrator melalui menu Pengguna agar jejak surat tetap utuh.
-    */
+    // Penghapusan akun sendiri dinonaktifkan; akun dikelola administrator agar
+    // jejak surat tetap utuh.
 }

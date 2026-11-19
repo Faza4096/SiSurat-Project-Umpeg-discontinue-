@@ -61,8 +61,8 @@
             <div class="gov-card p-5">
                 <p class="gov-card-title">Hak Akses</p>
                 <ul class="mt-2 space-y-2 text-xs leading-relaxed text-slate-500">
-                    <li><span class="font-semibold text-slate-700">Admin</span> — kelola pengguna, unit, klasifikasi, instansi, pengaturan, dan log aktivitas.</li>
-                    <li><span class="font-semibold text-slate-700">Staf</span> — catat surat masuk & surat keluar, ACC & disposisi, setujui surat, kirim, dan arsipkan.</li>
+                    <li><span class="font-semibold text-slate-700">Admin</span>: mengelola pengguna, unit, klasifikasi, instansi, pengaturan, dan log aktivitas.</li>
+                    <li><span class="font-semibold text-slate-700">Staf</span>: mencatat surat masuk dan keluar, mengelola disposisi, menyetujui surat, mengirim, dan mengarsipkan.</li>
                 </ul>
             </div>
         </div>

@@ -34,9 +34,8 @@ class PengaturanController extends Controller
         if ($request->hasFile('logo')) {
             $file = $request->file('logo');
 
-            // Ekstensi diambil dari hasil validasi isi berkas, bukan dari nama
-            // kiriman peramban: berkas berisi PNG yang dinamai .php tidak boleh
-            // berakhir sebagai berkas yang dieksekusi web server.
+            // Ekstensi dari hasil validasi isi berkas, bukan nama kiriman: PNG
+            // bernama .php tidak boleh berakhir dieksekusi web server.
             $ekstensi = match ($file->guessExtension()) {
                 'jpeg', 'jpg' => 'jpg',
                 'png' => 'png',
@@ -71,6 +70,6 @@ class PengaturanController extends Controller
         $pengaturan->update($data);
         LogAktivitas::catat('pengaturan.ubah', 'Identitas instansi diperbarui');
 
-        return back()->with('ok', 'Pengaturan instansi disimpan. Identitas di seluruh aplikasi dan kop kartu disposisi memakai data terbaru.');
+        return back()->with('ok', 'Pengaturan disimpan dan langsung dipakai di seluruh aplikasi.');
     }
 }

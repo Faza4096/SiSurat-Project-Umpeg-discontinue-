@@ -1,6 +1,6 @@
 <x-guest-layout judul="Masuk">
     <x-auth.heading eyebrow="Portal Tata Naskah Dinas" judul="Masuk ke SiSurat"
-                    keterangan="Silakan masuk dengan akun dinas Anda untuk mengelola surat dan disposisi." />
+                    keterangan="Masuk dengan akun dinas untuk mengelola surat dan disposisi." />
 
     <x-auth-session-status class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700" :status="session('status')" />
 
@@ -31,7 +31,7 @@
     </form>
 
     <x-auth.footnote>
-        <p>Akun pegawai hanya dibuat administrator instansi. Hubungi administrator bila belum memiliki akses.</p>
-        <p class="mt-1.5">Kata sandi sementara wajib diganti saat login pertama sebelum portal dapat digunakan.</p>
+        <p>Akun pegawai dibuat oleh administrator. Hubungi administrator bila belum memiliki akses.</p>
+        <p class="mt-1.5">Kata sandi sementara wajib diganti saat login pertama.</p>
     </x-auth.footnote>
 </x-guest-layout>

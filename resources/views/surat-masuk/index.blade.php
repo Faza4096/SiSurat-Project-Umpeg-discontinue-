@@ -71,7 +71,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="min-w-[900px] divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
                         <th class="gov-th">No. Agenda</th>
@@ -127,7 +127,7 @@
                                     <x-icon name="inbox" class="h-6 w-6" />
                                 </span>
                                 <p class="mt-3 text-sm font-semibold text-slate-600">Tidak ada surat masuk</p>
-                                <p class="mt-1 text-xs text-slate-500">Ubah filter atau catat surat baru untuk mendapatkan nomor agenda otomatis.</p>
+                                <p class="mt-1 text-xs text-slate-500">Ubah filter atau catat surat baru.</p>
                             </td>
                         </tr>
                     @endforelse

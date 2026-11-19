@@ -260,7 +260,7 @@ class SuratKeluarController extends Controller
             Notification::send($penerima, new DisposisiBaru($disposisi));
         }
 
-        return back()->with('ok', 'Surat di-ACC. Kartu disposisi PDF dibuat dan diteruskan ke unit Tata Usaha untuk pengiriman.');
+        return back()->with('ok', 'Surat di-ACC. Kartu disposisi dibuat dan diteruskan ke Tata Usaha untuk pengiriman.');
     }
 
     /** Staf menolak / meminta revisi. */

@@ -33,9 +33,8 @@ class SuratKeluarPolicy
     }
 
     /**
-     * Hapus permanen hanya untuk administrator, untuk surat yang sudah tidak
-     * dipakai. Kartu disposisi, lampiran, dan berkas finalnya ikut terhapus
-     * sehingga tindakan ini tidak dapat dibatalkan.
+     * Khusus administrator: kartu disposisi, lampiran, dan berkas final ikut
+     * terhapus sehingga tidak dapat dibatalkan.
      */
     public function hapusPermanen(User $user, SuratKeluar $surat): bool
     {
