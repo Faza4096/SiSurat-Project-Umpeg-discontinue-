@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use App\Models\SuratKeluar;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -11,8 +10,6 @@ use Illuminate\Notifications\Notification;
 /** Dikirim saat surat diajukan, dan saat surat perlu revisi. */
 class MenungguTandaTangan extends Notification implements ShouldQueue
 {
-    use Queueable;
-
     public function __construct(public SuratKeluar $surat, public string $mode = 'baru')
     {
     }

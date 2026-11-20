@@ -54,8 +54,9 @@ folder proyek. Nilai rahasia (kunci aplikasi, sandi basis data, sandi SMTP) hany
 - [ ] Berkas unggahan (lampiran, surat final, bukti, kartu disposisi) berada di `storage/app`
       yang **tidak** terekspos web server; unduhan hanya lewat rute ber-otorisasi.
 - [ ] Cadangan rutin untuk basis data dan `storage/app`; uji pemulihan sekali.
-- [ ] `QUEUE_CONNECTION=database` aman dibiarkan: notifikasi aplikasi dikirim langsung, tidak
-      ada job yang menunggu worker, jadi worker antrean belum wajib.
+- [ ] `QUEUE_CONNECTION=database` dan worker antrean berjalan (lihat bagian 7.1). Notifikasi
+      surel dikirim lewat antrean, jadi tanpa worker surel menumpuk di tabel `jobs` dan tidak
+      pernah terkirim.
 
 ## 4. SMTP untuk email reset sandi
 
@@ -125,10 +126,80 @@ sandi bawaan yang diketahui orang lain.
 
 ## 7. Operasional
 
-- [ ] Cron scheduler aktif agar pengingat disposisi terkirim:
+### 7.1 Worker antrean (wajib)
+
+Notifikasi surel dikirim lewat antrean `database`. Request web hanya menulis job ke tabel `jobs`,
+sehingga tanpa worker yang berjalan tidak ada surel yang terkirim meski aplikasi terlihat normal.
+
+- [ ] Buat unit systemd `/etc/systemd/system/sisurat-worker.service` (sesuaikan `User` dan
+      `WorkingDirectory` dengan server; untuk Laragon di Windows pakai path proyek dan user Windows):
+
+  ```ini
+  [Unit]
+  Description=Worker antrean SiSurat
+  After=network.target mysql.service
+
+  [Service]
+  User=www-data
+  Group=www-data
+  WorkingDirectory=/var/www/sisurat
+  Restart=always
+  RestartSec=5
+  ExecStart=/usr/bin/php /var/www/sisurat/artisan queue:work --sleep=3 --tries=3 --timeout=60 --max-time=3600
+
+  [Install]
+  WantedBy=multi-user.target
+  ```
+
+- [ ] Aktifkan dan periksa:
+
+  ```sh
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now sisurat-worker
+  sudo systemctl status sisurat-worker
+  ```
+
+- [ ] Setiap deploy yang mengubah kode, worker dimuat ulang karena proses lama masih memakai kode
+      lama. Bisa juga dijalankan sebagai langkah terakhir skrip deploy:
+
+  ```sh
+  php artisan queue:restart
+  ```
+
+- [ ] Pantau job gagal (tersimpan di tabel `failed_jobs`):
+
+  ```sh
+  php artisan queue:failed
+  php artisan queue:retry all
+  ```
+
+- [ ] Uji setelah worker aktif: buat disposisi, lalu pastikan notifikasi lonceng muncul di akun
+      unit tujuan (tabel `jobs` kembali kosong) dan `storage/logs/laravel.log` mencatat surel bila
+      `MAIL_MAILER=log`.
+
+### 7.2 Cron scheduler (wajib untuk pengingat)
+
+- [ ] Daftarkan di crontab pengguna web server (`crontab -e -u www-data`):
 
   ```
   * * * * * cd /var/www/sisurat && php artisan schedule:run >> /dev/null 2>&1
+  ```
+
+- [ ] Pastikan jadwalnya terbaca — `disposisi:ingatkan` berjalan Senin–Jumat pukul 07:30 waktu
+      `APP_TIMEZONE`:
+
+  ```sh
+  php artisan schedule:list
+  ```
+
+- [ ] Bila cron tidak tersedia, jalankan scheduler sebagai layanan systemd dengan perintah
+      `php artisan schedule:work` (pola unit sama seperti 7.1, ganti baris `ExecStart`).
+
+- [ ] Untuk pengembangan di Windows, buka dua terminal terpisah:
+
+  ```sh
+  php artisan queue:work
+  php artisan schedule:work
   ```
 
 - [ ] Log aplikasi terpantau (`storage/logs/laravel.log`) dengan rotasi, dan `LOG_LEVEL`
