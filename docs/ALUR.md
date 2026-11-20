@@ -266,7 +266,8 @@ antrean ACC. Administrator mendapat tambahan ringkasan akun dan log aktivitas te
   lampiran kartunya. Baris surat rahasia juga disembunyikan dari laporan tindak lanjut
   dan hitungan terbuka di dasbor bagi non-operator. Notifikasi lama yang terlanjur
   tersimpan dibersihkan oleh migrasi `2026_11_20_000001_hapus_notifikasi_rahasia_lama`
-  (`App\Services\PembersihNotifikasiRahasia`).
+  (`App\Services\PembersihNotifikasiRahasia`), termasuk job notifikasi rahasia milik
+  non-operator yang masih menunggu di tabel `jobs` (`App\Services\PembersihAntreanRahasia`).
 - Kartu disegarkan otomatis saat unit mengubah status tindak lanjut atau mengunggah bukti.
 
 ### Ringkasan perintah
