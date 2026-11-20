@@ -4,11 +4,12 @@ namespace App\Notifications;
 
 use App\Models\DisposisiTujuan;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /** Pengingat batas waktu tindak lanjut disposisi. */
-class PengingatBatasWaktu extends Notification
+class PengingatBatasWaktu extends Notification implements ShouldQueue
 {
     use Queueable;
 

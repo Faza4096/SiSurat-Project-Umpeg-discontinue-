@@ -4,11 +4,12 @@ namespace App\Notifications;
 
 use App\Models\SuratKeluar;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /** Dikirim saat surat diajukan, dan saat surat perlu revisi. */
-class MenungguTandaTangan extends Notification
+class MenungguTandaTangan extends Notification implements ShouldQueue
 {
     use Queueable;
 

@@ -4,16 +4,50 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Notifications\DisposisiBaru;
+use App\Notifications\MenungguTandaTangan;
 use App\Notifications\PengingatBatasWaktu;
 use App\Notifications\StatusTindakLanjut;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Tests\Concerns\BuatData;
 use Tests\TestCase;
 
 class NotifikasiTest extends TestCase
 {
     use RefreshDatabase, BuatData;
+
+    public function test_keempat_notifikasi_di_antrekan(): void
+    {
+        $kelas = [DisposisiBaru::class, MenungguTandaTangan::class, StatusTindakLanjut::class, PengingatBatasWaktu::class];
+
+        foreach ($kelas as $notifikasi) {
+            $this->assertContains(ShouldQueue::class, class_implements($notifikasi), "$notifikasi belum masuk antrean.");
+        }
+    }
+
+    public function test_notifikasi_dari_request_masuk_antrean(): void
+    {
+        Queue::fake();
+
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit('UMPEG');
+        $staf = User::factory()->create(['unit_id' => $unit->id]);
+
+        $surat = $this->suratMasuk($tu);
+        $tujuan = $this->disposisi($surat, $pimpinan, [$unit])->tujuan()->first();
+
+        $this->actingAs($pimpinan)->patch(route('tujuan.status', $tujuan), ['status' => 'selesai'])
+            ->assertSessionHasNoErrors();
+
+        Queue::assertPushed(
+            SendQueuedNotifications::class,
+            fn (SendQueuedNotifications $job) => $job->notification instanceof StatusTindakLanjut,
+        );
+    }
 
     public function test_notifikasi_tersimpan_di_database_dan_tampil_di_halaman(): void
     {

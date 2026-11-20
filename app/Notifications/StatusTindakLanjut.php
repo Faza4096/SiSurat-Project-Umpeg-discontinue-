@@ -4,11 +4,12 @@ namespace App\Notifications;
 
 use App\Models\DisposisiTujuan;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /** Dikirim ke unit tujuan saat operator mengubah status tindak lanjut. */
-class StatusTindakLanjut extends Notification
+class StatusTindakLanjut extends Notification implements ShouldQueue
 {
     use Queueable;
 
