@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\Concerns\BuatData;
 use Tests\TestCase;
@@ -92,5 +93,26 @@ class PembersihAntreanRahasiaTest extends TestCase
         // Yang tersisa: disposisi biasa untuk pegawai dan disposisi rahasia untuk staf unit.
         $this->assertSame(1, $dihapus);
         $this->assertSame(2, DB::table('failed_jobs')->count());
+    }
+
+    public function test_tabel_antrean_yang_tidak_ada_dilewati(): void
+    {
+        // Tidak memakai DDL agar transaksi RefreshDatabase di MySQL tidak ter-commit.
+        Schema::shouldReceive('hasTable')->andReturnUsing(fn (string $tabel) => $tabel === 'jobs');
+
+        $staf = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit('UMPEG');
+        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+
+        $disposisi = $this->disposisi($this->suratMasuk($staf, ['sifat' => 'rahasia']), $pimpinan, [$unit]);
+
+        Queue::connection('database')->push(
+            new SendQueuedNotifications($pegawai, new DisposisiBaru($disposisi), ['database'])
+        );
+
+        // Tabel jobs tetap dibersihkan meski failed_jobs tidak ada.
+        $this->assertSame(1, app(PembersihAntreanRahasia::class)->jalankan());
+        $this->assertSame(0, DB::table('jobs')->count());
     }
 }

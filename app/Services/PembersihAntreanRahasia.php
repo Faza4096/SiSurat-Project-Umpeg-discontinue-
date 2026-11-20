@@ -8,6 +8,7 @@ use App\Notifications\PengingatBatasWaktu;
 use App\Notifications\StatusTindakLanjut;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Job notifikasi yang masuk antrean sebelum aturan penerima surat rahasia
@@ -26,7 +27,10 @@ class PembersihAntreanRahasia
         $dihapus = 0;
 
         foreach (self::TABEL as $tabel) {
-            $dihapus += $this->bersihkan($tabel);
+            // Driver antrean lain mungkin tidak punya tabel failed_jobs.
+            if (Schema::hasTable($tabel)) {
+                $dihapus += $this->bersihkan($tabel);
+            }
         }
 
         return $dihapus;
@@ -63,11 +67,9 @@ class PembersihAntreanRahasia
             return false;
         }
 
-        if (! $job instanceof SendQueuedNotifications || ! $this->notifikasiRahasia($job->notification)) {
-            return false;
-        }
-
-        return collect($job->notifiables)->contains(fn ($penerima) => $this->nonOperator($penerima));
+        return $job instanceof SendQueuedNotifications
+            && $this->notifikasiRahasia($job->notification)
+            && collect($job->notifiables)->contains(fn ($penerima) => $this->nonOperator($penerima));
     }
 
     private function notifikasiRahasia(object $notifikasi): bool
