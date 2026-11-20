@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class DisposisiTujuan extends Model
@@ -48,6 +49,28 @@ class DisposisiTujuan extends Model
     {
         return $this->disposisi?->penerimaNotifikasi($this->unit_id)
             ?? new \Illuminate\Database\Eloquent\Collection;
+    }
+
+    /**
+     * Staf dan admin melihat semua baris tindak lanjut; akun lain hanya baris
+     * unitnya yang surat induknya bukan rahasia, sama seperti akses disposisi.
+     */
+    public function scopeTerlihatOleh(Builder $query, ?User $user): Builder
+    {
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->punyaRole(...Disposisi::PERAN_OPERATOR)) {
+            return $query;
+        }
+
+        if ($user->unit_id === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where('unit_id', $user->unit_id)
+            ->whereHas('disposisi', fn ($d) => $d->bukanRahasia());
     }
 
     /**

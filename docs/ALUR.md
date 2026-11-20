@@ -212,8 +212,10 @@ Menu **Laporan** (`/laporan`) menyediakan:
 - **Laporan Tindak Lanjut** (`/laporan/tindak-lanjut`): status per unit, batas waktu,
   keterlambatan (merah), catatan, dan tautan bukti.
 
-Semua laporan mematuhi `SuratMasuk::scopeTerlihatOleh()` / `SuratKeluar::scopeTerlihatOleh()`.
-Untuk peran `staf` dan `admin` scope tersebut mengembalikan seluruh data.
+Semua laporan mematuhi `SuratMasuk::scopeTerlihatOleh()` / `SuratKeluar::scopeTerlihatOleh()`,
+sedangkan laporan tindak lanjut memakai `DisposisiTujuan::scopeTerlihatOleh()`.
+Untuk peran `staf` dan `admin` scope tersebut mengembalikan seluruh data; akun lain
+hanya melihat unitnya sendiri dan baris surat yang bukan rahasia.
 
 ---
 

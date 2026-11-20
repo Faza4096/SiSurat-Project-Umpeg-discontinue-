@@ -66,6 +66,36 @@ class PelaporanTest extends TestCase
             ->assertSee($unit->nama);
     }
 
+    public function test_laporan_tindak_lanjut_dibatasi_unit_pengguna_bagi_non_operator(): void
+    {
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unitSendiri = $this->unit('UMPEG');
+        $unitLain = $this->unit('ULA');
+        $pegawai = User::factory()->role('pegawai')->unit($unitSendiri)->create();
+
+        $milikSendiri = $this->suratMasuk($tu, ['perihal' => 'Perihal unit sendiri']);
+        $milikLain = $this->suratMasuk($tu, ['perihal' => 'Perihal unit lain']);
+
+        $this->disposisi($milikSendiri, $pimpinan, [$unitSendiri]);
+        $this->disposisi($milikLain, $pimpinan, [$unitLain]);
+
+        $this->actingAs($pegawai)
+            ->get(route('laporan.tindak-lanjut'))
+            ->assertOk()
+            ->assertSee('Perihal unit sendiri')
+            ->assertDontSee('Perihal unit lain')
+            ->assertDontSee($unitLain->nama);
+
+        // Operator tetap melihat tindak lanjut seluruh unit.
+        $this->actingAs($tu)
+            ->get(route('laporan.tindak-lanjut'))
+            ->assertOk()
+            ->assertSee('Perihal unit sendiri')
+            ->assertSee('Perihal unit lain')
+            ->assertSee($unitLain->nama);
+    }
+
     public function test_laporan_tindak_lanjut_menyembunyikan_surat_rahasia_dari_non_operator(): void
     {
         $tu = User::factory()->staf()->create();
