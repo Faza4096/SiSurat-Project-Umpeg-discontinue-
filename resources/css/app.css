@@ -62,10 +62,6 @@
         @apply inline-flex items-center justify-center gap-2 rounded-md bg-gov-700 px-3.5 py-2 text-[13px] font-semibold text-white shadow-sm transition hover:bg-gov-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gov-500 focus-visible:ring-offset-2 disabled:opacity-60;
     }
 
-    .gov-btn-gold {
-        @apply inline-flex items-center justify-center gap-2 rounded-md bg-gold-400 px-3.5 py-2 text-[13px] font-semibold text-gov-900 shadow-sm transition hover:bg-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2;
-    }
-
     .gov-btn-outline {
         @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-[13px] font-semibold text-slate-700 transition hover:border-gov-300 hover:bg-gov-50 hover:text-gov-800;
     }
