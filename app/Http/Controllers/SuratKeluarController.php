@@ -255,7 +255,7 @@ class SuratKeluarController extends Controller
 
         $disposisi = app(KartuDisposisiService::class)->simpan($disposisi);
 
-        $penerima = User::whereIn('unit_id', $disposisi->tujuan()->pluck('unit_id'))->get();
+        $penerima = $disposisi->penerimaNotifikasi();
         if ($penerima->isNotEmpty()) {
             Notification::send($penerima, new DisposisiBaru($disposisi));
         }

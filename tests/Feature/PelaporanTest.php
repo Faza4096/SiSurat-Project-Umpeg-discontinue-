@@ -65,4 +65,32 @@ class PelaporanTest extends TestCase
             ->assertSee($surat->no_agenda)
             ->assertSee($unit->nama);
     }
+
+    public function test_laporan_tindak_lanjut_menyembunyikan_surat_rahasia_dari_non_operator(): void
+    {
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit('UMPEG');
+        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+
+        $biasa = $this->suratMasuk($tu, ['perihal' => 'Perihal biasa terlihat']);
+        $rahasia = $this->suratMasuk($tu, [
+            'perihal' => 'Perihal rahasia tersembunyi',
+            'sifat' => 'rahasia',
+        ]);
+
+        $this->disposisi($biasa, $pimpinan, [$unit]);
+        $this->disposisi($rahasia, $pimpinan, [$unit]);
+
+        $this->actingAs($pegawai)
+            ->get(route('laporan.tindak-lanjut'))
+            ->assertOk()
+            ->assertSee('Perihal biasa terlihat')
+            ->assertDontSee('Perihal rahasia tersembunyi');
+
+        $this->actingAs($pimpinan)
+            ->get(route('laporan.tindak-lanjut'))
+            ->assertOk()
+            ->assertSee('Perihal rahasia tersembunyi');
+    }
 }

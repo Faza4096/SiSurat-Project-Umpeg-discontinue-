@@ -93,6 +93,68 @@ class NotifikasiTest extends TestCase
         Notification::assertSentTo($staf, StatusTindakLanjut::class);
     }
 
+    public function test_disposisi_surat_rahasia_tidak_dikabarkan_ke_pegawai_unit_tujuan(): void
+    {
+        Notification::fake();
+
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit('UMPEG');
+        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+        $stafUnit = User::factory()->staf()->unit($unit)->create();
+
+        $surat = $this->suratMasuk($tu, ['sifat' => 'rahasia']);
+
+        $this->actingAs($pimpinan)->post(route('disposisi.acc', $surat), [
+            'indeks' => '400.7/R',
+            'tgl_penyelesaian' => now()->addDays(3)->toDateString(),
+            'instruksi' => 'Tindak lanjuti secara terbatas.',
+            'tujuan' => [$unit->id],
+        ])->assertSessionHasNoErrors();
+
+        Notification::assertNotSentTo($pegawai, DisposisiBaru::class);
+        Notification::assertSentTo($stafUnit, DisposisiBaru::class);
+    }
+
+    public function test_status_tindak_lanjut_surat_rahasia_hanya_dikabarkan_ke_operator_unit(): void
+    {
+        Notification::fake();
+
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit('UMPEG');
+        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+        $stafUnit = User::factory()->staf()->unit($unit)->create();
+
+        $surat = $this->suratMasuk($tu, ['sifat' => 'rahasia']);
+        $tujuan = $this->disposisi($surat, $pimpinan, [$unit])->tujuan()->first();
+
+        $this->actingAs($pimpinan)->patch(route('tujuan.status', $tujuan), ['status' => 'diproses'])
+            ->assertSessionHasNoErrors();
+
+        Notification::assertNotSentTo($pegawai, StatusTindakLanjut::class);
+        Notification::assertSentTo($stafUnit, StatusTindakLanjut::class);
+    }
+
+    public function test_pengingat_batas_waktu_surat_rahasia_hanya_untuk_operator_unit(): void
+    {
+        Notification::fake();
+
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit('UMPEG');
+        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+        $stafUnit = User::factory()->staf()->unit($unit)->create();
+
+        $surat = $this->suratMasuk($tu, ['sifat' => 'rahasia']);
+        $this->disposisi($surat, $pimpinan, [$unit], ['tgl_penyelesaian' => now()->addDay()]);
+
+        $this->artisan('disposisi:ingatkan')->assertSuccessful();
+
+        Notification::assertNotSentTo($pegawai, PengingatBatasWaktu::class);
+        Notification::assertSentTo($stafUnit, PengingatBatasWaktu::class);
+    }
+
     public function test_command_pengingat_mengirim_notifikasi_batas_waktu(): void
     {
         Notification::fake();

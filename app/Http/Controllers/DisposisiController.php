@@ -72,7 +72,7 @@ class DisposisiController extends Controller
 
         $disposisi = app(KartuDisposisiService::class)->simpan($disposisi);
 
-        $this->kirimNotifikasi($disposisi, $data['tujuan']);
+        $this->kirimNotifikasi($disposisi);
 
         return redirect()->route('surat-masuk.show', $suratMasuk)
             ->with('ok', 'Surat di-ACC. Kartu disposisi dibuat dan diteruskan ke unit tujuan.');
@@ -101,7 +101,7 @@ class DisposisiController extends Controller
         });
 
         $disposisi = app(KartuDisposisiService::class)->simpan($disposisi);
-        $this->kirimNotifikasi($disposisi, $data['tujuan']);
+        $this->kirimNotifikasi($disposisi);
 
         return back()->with('ok', 'Disposisi tersimpan, kartu PDF dibuat, dan diteruskan ke unit tujuan.');
     }
@@ -287,15 +287,15 @@ class DisposisiController extends Controller
             return;
         }
 
-        Notification::send(
-            User::where('unit_id', $tujuan->unit_id)->whereKeyNot($oleh->id)->get(),
-            new StatusTindakLanjut($tujuan, $status, $oleh->name),
-        );
+        $penerima = $tujuan->penerimaNotifikasi()
+            ->reject(fn (User $user) => $user->id === $oleh->id);
+
+        Notification::send($penerima, new StatusTindakLanjut($tujuan, $status, $oleh->name));
     }
 
-    private function kirimNotifikasi(Disposisi $disposisi, array $unitIds): void
+    private function kirimNotifikasi(Disposisi $disposisi): void
     {
-        $penerima = User::whereIn('unit_id', $unitIds)->get();
+        $penerima = $disposisi->penerimaNotifikasi();
 
         if ($penerima->isNotEmpty()) {
             Notification::send($penerima, new DisposisiBaru($disposisi));
@@ -358,7 +358,9 @@ class DisposisiController extends Controller
     {
         return Disposisi::with('suratMasuk.instansi', 'suratKeluar.unit', 'pembuat', 'tujuan.unit', 'tujuan.penyelesai')
             ->when(! $request->user()->punyaRole('admin', 'staf'), function ($q) use ($request) {
-                $q->whereHas('tujuan', fn ($t) => $t->where('unit_id', $request->user()->unit_id));
+                $q->whereHas('tujuan', fn ($t) => $t->where('unit_id', $request->user()->unit_id))
+                    ->whereDoesntHave('suratMasuk', fn ($s) => $s->where('sifat', 'rahasia'))
+                    ->whereDoesntHave('suratKeluar', fn ($s) => $s->where('sifat', 'rahasia'));
             })
             ->when($request->query('cari'), function ($q, $cari) {
                 $q->where(fn ($w) => $w->where('instruksi', 'like', "%{$cari}%")

@@ -36,17 +36,25 @@ class LaporanController extends Controller
         ])
             // Abaikan baris milik disposisi yang sudah dibatalkan (soft delete).
             ->whereHas('disposisi')
+            // Non-operator tidak boleh melihat baris surat rahasia.
+            ->when(! $request->user()->punyaRole('admin', 'staf'), function ($x) {
+                $x->whereDoesntHave('disposisi.suratMasuk', fn ($s) => $s->where('sifat', 'rahasia'))
+                    ->whereDoesntHave('disposisi.suratKeluar', fn ($s) => $s->where('sifat', 'rahasia'));
+            })
             ->when($request->query('unit'), fn ($x, $unit) => $x->where('unit_id', $unit))
             ->when($request->query('status'), fn ($x, $status) => $x->where('status_tindak_lanjut', $status))
             ->when($request->query('dari'), fn ($x, $dari) => $x->whereHas('disposisi', fn ($d) => $d->whereDate('tgl_disposisi', '>=', $dari)))
             ->when($request->query('sampai'), fn ($x, $sampai) => $x->whereHas('disposisi', fn ($d) => $d->whereDate('tgl_disposisi', '<=', $sampai)))
             ->latest();
 
+        $ringkasan = (clone $q)->reorder()
+            ->selectRaw('status_tindak_lanjut, count(*) as jumlah')
+            ->groupBy('status_tindak_lanjut')->pluck('jumlah', 'status_tindak_lanjut');
+
         return view('laporan.tindak-lanjut', [
             'data' => $q->paginate(20)->withQueryString(),
             'units' => UnitKerja::orderBy('nama')->get(),
-            'ringkasan' => \App\Models\DisposisiTujuan::selectRaw('status_tindak_lanjut, count(*) as jumlah')
-                ->groupBy('status_tindak_lanjut')->pluck('jumlah', 'status_tindak_lanjut'),
+            'ringkasan' => $ringkasan,
         ]);
     }
 

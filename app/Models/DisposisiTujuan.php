@@ -40,7 +40,25 @@ class DisposisiTujuan extends Model
         return $this->belongsTo(User::class, 'selesai_oleh');
     }
 
-    /** Hanya unit tujuan (atau admin) yang boleh memperbarui tindak lanjut. */
+    /**
+     * Penerima notifikasi tindak lanjut: pengguna unit tujuan, tetapi untuk
+     * disposisi surat rahasia hanya staf/administrator.
+     */
+    public function penerimaNotifikasi(): \Illuminate\Database\Eloquent\Collection
+    {
+        $penerima = User::where('unit_id', $this->unit_id);
+
+        if ($this->disposisi?->isRahasia()) {
+            $penerima->whereHas('role', fn ($q) => $q->whereIn('nama', ['admin', 'staf']));
+        }
+
+        return $penerima->get();
+    }
+
+    /**
+     * Hanya unit tujuan (atau admin) yang boleh memperbarui tindak lanjut;
+     * akun non-operator tidak pernah menyentuh disposisi surat rahasia.
+     */
     public function bolehDiubahOleh(?User $user): bool
     {
         if (! $user) {
@@ -49,6 +67,10 @@ class DisposisiTujuan extends Model
 
         if ($user->punyaRole('admin')) {
             return true;
+        }
+
+        if ($this->disposisi?->isRahasia()) {
+            return false;
         }
 
         return $user->unit_id !== null && $user->unit_id === $this->unit_id;

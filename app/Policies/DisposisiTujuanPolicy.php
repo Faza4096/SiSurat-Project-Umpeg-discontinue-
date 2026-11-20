@@ -7,9 +7,20 @@ use App\Models\User;
 
 class DisposisiTujuanPolicy
 {
+    /**
+     * Unit tujuan selalu boleh melihat tindak lanjutnya sendiri (termasuk
+     * bukti yang ia unggah), selain itu mengikuti akses surat induk.
+     */
     public function view(User $user, DisposisiTujuan $tujuan): bool
     {
-        return $tujuan->disposisi?->suratMasuk?->bolehDilihatOleh($user) ?? false;
+        if ($tujuan->bolehDiubahOleh($user)) {
+            return true;
+        }
+
+        $disposisi = $tujuan->disposisi;
+        $surat = $disposisi?->suratMasuk ?? $disposisi?->suratKeluar;
+
+        return $surat?->bolehDilihatOleh($user) ?? false;
     }
 
     /** Staf boleh mengubah tujuan mana pun; selain itu hanya unit tujuan sendiri. */

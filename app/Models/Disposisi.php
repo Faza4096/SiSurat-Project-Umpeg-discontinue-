@@ -42,6 +42,51 @@ class Disposisi extends Model
         return $this->hasMany(DisposisiTujuan::class);
     }
 
+    /** Surat induk disposisi bertanda rahasia. */
+    public function isRahasia(): bool
+    {
+        return $this->suratMasuk?->isRahasia()
+            || $this->suratKeluar?->isRahasia()
+            || false;
+    }
+
+    /**
+     * Staf dan admin melihat semua disposisi; akun lain hanya disposisi yang
+     * ditujukan ke unitnya dan surat induknya bukan rahasia.
+     */
+    public function bolehDilihatOleh(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->punyaRole('admin', 'staf')) {
+            return true;
+        }
+
+        if ($this->isRahasia()) {
+            return false;
+        }
+
+        return $user->unit_id !== null
+            && $this->tujuan()->where('unit_id', $user->unit_id)->exists();
+    }
+
+    /**
+     * Penerima notifikasi disposisi: pengguna unit tujuan, tetapi untuk surat
+     * rahasia hanya staf/administrator yang boleh menerimanya.
+     */
+    public function penerimaNotifikasi(): \Illuminate\Database\Eloquent\Collection
+    {
+        $penerima = User::whereIn('unit_id', $this->tujuan()->pluck('unit_id'));
+
+        if ($this->isRahasia()) {
+            $penerima->whereHas('role', fn ($q) => $q->whereIn('nama', ['admin', 'staf']));
+        }
+
+        return $penerima->get();
+    }
+
     public function sudahLewatBatas(): bool
     {
         return $this->tgl_penyelesaian !== null && $this->tgl_penyelesaian->isPast();

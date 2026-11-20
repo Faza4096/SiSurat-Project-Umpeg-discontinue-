@@ -100,8 +100,7 @@ class SuratKeluar extends Model
             return true;
         }
 
-        return $user->punyaRole('staf')
-            && ! $this->isRahasia()
+        return ! $this->isRahasia()
             && $user->unit_id !== null
             && $user->unit_id === $this->unit_id;
     }

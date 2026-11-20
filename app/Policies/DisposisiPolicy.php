@@ -7,8 +7,13 @@ use App\Models\User;
 
 class DisposisiPolicy
 {
+    /** Surat induk terlihat, atau disposisi memang ditujukan ke unit pengguna. */
     public function view(User $user, Disposisi $disposisi): bool
     {
+        if ($disposisi->bolehDilihatOleh($user)) {
+            return true;
+        }
+
         $surat = $disposisi->suratMasuk ?? $disposisi->suratKeluar;
 
         return $surat?->bolehDilihatOleh($user) ?? false;
@@ -17,12 +22,7 @@ class DisposisiPolicy
     /** Staf dan admin selalu boleh; unit tujuan boleh untuk disposisinya. */
     public function unduhKartu(User $user, Disposisi $disposisi): bool
     {
-        if ($user->punyaRole('admin', 'staf')) {
-            return true;
-        }
-
-        return $user->unit_id !== null
-            && $disposisi->tujuan()->where('unit_id', $user->unit_id)->exists();
+        return $disposisi->bolehDilihatOleh($user);
     }
 
     public function create(User $user): bool

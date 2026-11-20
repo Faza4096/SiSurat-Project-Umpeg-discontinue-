@@ -173,8 +173,8 @@ Notifikasi dikirim lewat kanal **database** (lonceng di topbar, halaman `/notifi
 | `DisposisiBaru` | Pengguna unit tujuan | Disposisi disimpan (surat masuk, atau kartu hasil ACC surat keluar). |
 | `MenungguTandaTangan` | Staf lain selain pengaju | Staf mengajukan surat keluar. |
 | `MenungguTandaTangan` (mode revisi) | Pembuat surat | Staf menolak / meminta revisi. |
-| `StatusTindakLanjut` | Pengguna unit tujuan | Staf memperbarui status tindak lanjut. |
-| `PengingatBatasWaktu` | Pengguna unit tujuan | Command `disposisi:ingatkan`. |
+| `StatusTindakLanjut` | Pengguna unit tujuan (surat rahasia: staf/admin unit) | Staf memperbarui status tindak lanjut. |
+| `PengingatBatasWaktu` | Pengguna unit tujuan (surat rahasia: staf/admin unit) | Command `disposisi:ingatkan`. |
 
 Karena satu peran memegang seluruh alur, notifikasi pengajuan ditujukan ke operator staf
 lain (`User::scopeOperator`) agar keputusan ACC tidak hanya masuk ke akun pengaju sendiri.
@@ -255,9 +255,16 @@ antrean ACC. Administrator mendapat tambahan ringkasan akun dan log aktivitas te
   untuk banyak kartu dalam satu PDF (checkbox di halaman Disposisi), dan pratinjau
   `GET /disposisi/{id}/kartu` dengan tombol Cetak (dialog cetak peramban).
 - **Hak akses** — ACC hanya staf/administrator; unduh kartu: staf, admin, dan unit tujuan
-  (`DisposisiPolicy::unduhKartu`); unit lain mendapat 403.
+  (`DisposisiPolicy::unduhKartu`); unit lain mendapat 403. Pratinjau kartu
+  (`/disposisi/{id}/kartu`) dan bukti tindak lanjut memakai aturan yang sama, sehingga
+  akun non-operator di unit tujuan juga bisa membukanya. Bila surat induk bertanda
+  `rahasia`, seluruh jalur disposisi (daftar, pratinjau kartu, PDF, bukti, dan tindak
+  lanjut) tertutup bagi non-operator dan hanya terbuka untuk staf/administrator.
 - **Notifikasi** — `DisposisiBaru` dikirim ke pengguna unit tujuan lewat basis data dan surel,
-  dengan kartu disposisi PDF terlampir.
+  dengan kartu disposisi PDF terlampir. Untuk surat rahasia, penerimanya dibatasi pada
+  staf/administrator unit tujuan; akun non-operator tidak menerima notifikasi maupun
+  lampiran kartunya. Baris surat rahasia juga disembunyikan dari laporan tindak lanjut
+  bagi non-operator.
 - Kartu disegarkan otomatis saat unit mengubah status tindak lanjut atau mengunggah bukti.
 
 ### Ringkasan perintah

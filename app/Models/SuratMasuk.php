@@ -88,7 +88,7 @@ class SuratMasuk extends Model
             return true;
         }
 
-        if (! $user->punyaRole('staf') || $this->isRahasia() || $user->unit_id === null) {
+        if ($this->isRahasia() || $user->unit_id === null) {
             return false;
         }
 

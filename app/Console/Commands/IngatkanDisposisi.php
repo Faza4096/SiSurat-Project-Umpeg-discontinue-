@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Models\DisposisiTujuan;
-use App\Models\User;
 use App\Notifications\PengingatBatasWaktu;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Notification;
@@ -27,7 +26,7 @@ class IngatkanDisposisi extends Command
         $terkirim = 0;
 
         foreach ($daftar as $tujuan) {
-            $penerima = User::where('unit_id', $tujuan->unit_id)->get();
+            $penerima = $tujuan->penerimaNotifikasi();
 
             if ($penerima->isEmpty()) {
                 $this->warn("Tidak ada pengguna pada unit {$tujuan->unit?->nama}.");
