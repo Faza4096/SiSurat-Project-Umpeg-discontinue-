@@ -11,8 +11,9 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['"Plus Jakarta Sans"', 'Figtree', ...defaultTheme.fontFamily.sans],
-                serif: ['"Source Serif 4"', 'Georgia', ...defaultTheme.fontFamily.serif],
+                /* Nama "... Variable" sesuai @font-face dari @fontsource-variable. */
+                sans: ['"Plus Jakarta Sans Variable"', '"Plus Jakarta Sans"', 'Figtree', ...defaultTheme.fontFamily.sans],
+                serif: ['"Source Serif 4 Variable"', '"Source Serif 4"', 'Georgia', ...defaultTheme.fontFamily.serif],
             },
             colors: {
                 gov: {
