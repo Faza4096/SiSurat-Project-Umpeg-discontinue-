@@ -142,6 +142,25 @@ class DashboardTest extends TestCase
         $this->assertLessThanOrEqual(25, $jumlah, "Dashboard menjalankan {$jumlah} query.");
     }
 
+    public function test_ringkasan_terbuka_menyembunyikan_disposisi_rahasia_dari_non_operator(): void
+    {
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit('UMPEG');
+        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+
+        $this->disposisi($this->suratMasuk($tu), $pimpinan, [$unit]);
+        $this->disposisi(
+            $this->suratMasuk($tu, ['sifat' => 'rahasia']),
+            $pimpinan,
+            [$unit],
+        );
+
+        $response = $this->actingAs($pegawai)->get(route('dashboard'))->assertOk();
+
+        $this->assertSame(1, $response->viewData('ringkasan')['terbuka']);
+    }
+
     public function test_ringkasan_hanya_menghitung_surat_bulan_berjalan(): void
     {
         $tu = User::factory()->staf()->create();

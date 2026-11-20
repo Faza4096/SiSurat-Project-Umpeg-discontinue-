@@ -359,8 +359,7 @@ class DisposisiController extends Controller
         return Disposisi::with('suratMasuk.instansi', 'suratKeluar.unit', 'pembuat', 'tujuan.unit', 'tujuan.penyelesai')
             ->when(! $request->user()->punyaRole('admin', 'staf'), function ($q) use ($request) {
                 $q->whereHas('tujuan', fn ($t) => $t->where('unit_id', $request->user()->unit_id))
-                    ->whereDoesntHave('suratMasuk', fn ($s) => $s->where('sifat', 'rahasia'))
-                    ->whereDoesntHave('suratKeluar', fn ($s) => $s->where('sifat', 'rahasia'));
+                    ->bukanRahasia();
             })
             ->when($request->query('cari'), function ($q, $cari) {
                 $q->where(fn ($w) => $w->where('instruksi', 'like', "%{$cari}%")

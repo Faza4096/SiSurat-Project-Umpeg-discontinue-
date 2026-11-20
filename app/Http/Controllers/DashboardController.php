@@ -49,8 +49,8 @@ class DashboardController extends Controller
     private function tindakLanjutQuery(User $user)
     {
         return DisposisiTujuan::where('status_tindak_lanjut', '!=', 'selesai')
-            ->when(! $user->punyaRole('admin', 'staf'),
-                fn ($q) => $q->where('unit_id', $user->unit_id));
+            ->when(! $user->punyaRole('admin', 'staf'), fn ($q) => $q->where('unit_id', $user->unit_id)
+                ->whereHas('disposisi', fn ($d) => $d->bukanRahasia()));
     }
 
     /** Daftar pekerjaan sesuai peran. Setiap bagian berisi baris siap klik. */

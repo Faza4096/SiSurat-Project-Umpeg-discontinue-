@@ -264,7 +264,9 @@ antrean ACC. Administrator mendapat tambahan ringkasan akun dan log aktivitas te
   dengan kartu disposisi PDF terlampir. Untuk surat rahasia, penerimanya dibatasi pada
   staf/administrator unit tujuan; akun non-operator tidak menerima notifikasi maupun
   lampiran kartunya. Baris surat rahasia juga disembunyikan dari laporan tindak lanjut
-  bagi non-operator.
+  dan hitungan terbuka di dasbor bagi non-operator. Notifikasi lama yang terlanjur
+  tersimpan dibersihkan oleh migrasi `2026_11_20_000001_hapus_notifikasi_rahasia_lama`
+  (`App\Services\PembersihNotifikasiRahasia`).
 - Kartu disegarkan otomatis saat unit mengubah status tindak lanjut atau mengunggah bukti.
 
 ### Ringkasan perintah

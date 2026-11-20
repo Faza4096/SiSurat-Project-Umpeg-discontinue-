@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -42,6 +43,9 @@ class Disposisi extends Model
         return $this->hasMany(DisposisiTujuan::class);
     }
 
+    /** Peran yang tetap boleh menyentuh surat rahasia. */
+    public const PERAN_OPERATOR = ['admin', 'staf'];
+
     /** Surat induk disposisi bertanda rahasia. */
     public function isRahasia(): bool
     {
@@ -76,15 +80,23 @@ class Disposisi extends Model
      * Penerima notifikasi disposisi: pengguna unit tujuan, tetapi untuk surat
      * rahasia hanya staf/administrator yang boleh menerimanya.
      */
-    public function penerimaNotifikasi(): \Illuminate\Database\Eloquent\Collection
+    public function penerimaNotifikasi(?int $unitId = null): \Illuminate\Database\Eloquent\Collection
     {
-        $penerima = User::whereIn('unit_id', $this->tujuan()->pluck('unit_id'));
+        $unit = $unitId === null ? $this->tujuan()->pluck('unit_id') : collect([$unitId]);
+        $penerima = User::whereIn('unit_id', $unit);
 
         if ($this->isRahasia()) {
-            $penerima->whereHas('role', fn ($q) => $q->whereIn('nama', ['admin', 'staf']));
+            $penerima->whereHas('role', fn ($q) => $q->whereIn('nama', self::PERAN_OPERATOR));
         }
 
         return $penerima->get();
+    }
+
+    /** Hanya disposisi yang surat induknya bukan rahasia. */
+    public function scopeBukanRahasia(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('suratMasuk', fn ($s) => $s->where('sifat', 'rahasia'))
+            ->whereDoesntHave('suratKeluar', fn ($s) => $s->where('sifat', 'rahasia'));
     }
 
     public function sudahLewatBatas(): bool

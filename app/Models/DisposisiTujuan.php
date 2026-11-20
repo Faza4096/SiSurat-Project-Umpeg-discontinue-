@@ -46,13 +46,8 @@ class DisposisiTujuan extends Model
      */
     public function penerimaNotifikasi(): \Illuminate\Database\Eloquent\Collection
     {
-        $penerima = User::where('unit_id', $this->unit_id);
-
-        if ($this->disposisi?->isRahasia()) {
-            $penerima->whereHas('role', fn ($q) => $q->whereIn('nama', ['admin', 'staf']));
-        }
-
-        return $penerima->get();
+        return $this->disposisi?->penerimaNotifikasi($this->unit_id)
+            ?? new \Illuminate\Database\Eloquent\Collection;
     }
 
     /**
