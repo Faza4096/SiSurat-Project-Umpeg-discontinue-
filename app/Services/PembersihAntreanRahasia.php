@@ -12,20 +12,35 @@ use Illuminate\Support\Facades\DB;
 /**
  * Job notifikasi yang masuk antrean sebelum aturan penerima surat rahasia
  * diperketat masih memuat nomor/perihal rahasia untuk akun non-operator.
- * Pembersih ini membatalkan job tersebut sebelum sempat dikirim.
+ * Pembersih ini membatalkan job tersebut sebelum sempat dikirim, termasuk
+ * job yang sudah gagal dan tersimpan di tabel failed_jobs.
  */
 class PembersihAntreanRahasia
 {
+    /** Tabel antrean yang menyimpan payload job notifikasi. */
+    private const TABEL = ['jobs', 'failed_jobs'];
+
     /** @return int jumlah job yang dihapus */
     public function jalankan(): int
     {
         $dihapus = 0;
 
-        DB::table('jobs')->select('id', 'payload')->chunkById(200, function ($baris) use (&$dihapus) {
+        foreach (self::TABEL as $tabel) {
+            $dihapus += $this->bersihkan($tabel);
+        }
+
+        return $dihapus;
+    }
+
+    private function bersihkan(string $tabel): int
+    {
+        $dihapus = 0;
+
+        DB::table($tabel)->select('id', 'payload')->chunkById(200, function ($baris) use (&$dihapus, $tabel) {
             $ids = $baris->filter(fn ($job) => $this->bocor($job->payload))->pluck('id');
 
             if ($ids->isNotEmpty()) {
-                DB::table('jobs')->whereIn('id', $ids)->delete();
+                DB::table($tabel)->whereIn('id', $ids)->delete();
                 $dihapus += $ids->count();
             }
         });
