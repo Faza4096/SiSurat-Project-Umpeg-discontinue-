@@ -22,26 +22,26 @@
 
     <div x-cloak x-show="sidebar" x-transition.opacity class="fixed inset-0 z-30 bg-gov-950/50 lg:hidden" @click="sidebar = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 z-40 flex w-[272px] -translate-x-full flex-col bg-gov-900 text-gov-100 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
+    <aside class="fixed inset-y-0 left-0 z-40 flex w-[272px] -translate-x-full flex-col bg-gradient-to-b from-gov-950 to-gov-700 text-gov-100 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
            :class="sidebar ? 'translate-x-0' : '-translate-x-full'">
         <div class="border-b border-white/10 px-5 pb-4 pt-5">
             <div class="flex items-start gap-3">
                 <x-lambang class="h-11 w-11 shrink-0" />
                 <div class="min-w-0 flex-1">
-                    <p class="text-[9px] font-semibold uppercase leading-[1.6] tracking-[0.1em] text-gold-300/90">{{ $identitas->nama }}</p>
+                    <p class="text-[9px] font-semibold uppercase leading-[1.6] tracking-[0.1em] text-gold-300">{{ $identitas->nama }}</p>
                     <p class="font-serif text-[21px] font-semibold leading-tight text-white">SiSurat</p>
                 </div>
                 <button type="button" class="-mr-1 p-1 text-gov-200 transition hover:text-white lg:hidden" @click="sidebar = false" aria-label="Tutup menu">
                     <x-icon name="close" class="h-5 w-5" />
                 </button>
             </div>
-            <p class="mt-2 text-[10px] uppercase tracking-[0.14em] text-gov-300/70">Tata Naskah Dinas</p>
+            <p class="mt-2 text-[10px] uppercase tracking-[0.14em] text-gov-200">Tata Naskah Dinas</p>
             <div class="mt-3 h-px bg-gradient-to-r from-gold-400/80 via-gold-400/25 to-transparent" aria-hidden="true"></div>
         </div>
 
         <nav class="gov-scroll flex-1 space-y-6 overflow-y-auto px-3 py-5" aria-label="Menu utama">
             <div>
-                <p class="px-3 pb-2 text-[9.5px] font-bold uppercase tracking-[0.18em] text-gov-300/60">Utama</p>
+                <p class="px-3 pb-2 text-[9.5px] font-bold uppercase tracking-[0.18em] text-gov-200">Utama</p>
                 <div class="space-y-0.5">
                     <a href="{{ route('dashboard') }}" class="gov-nav {{ request()->routeIs('dashboard') ? 'gov-nav-active' : '' }}">
                         <x-icon name="dashboard" class="h-[18px] w-[18px] shrink-0" /> Dashboard
@@ -63,7 +63,7 @@
 
             @if (auth()->user()->punyaRole('admin'))
                 <div>
-                    <p class="px-3 pb-2 text-[9.5px] font-bold uppercase tracking-[0.18em] text-gov-300/60">Administrasi</p>
+                    <p class="px-3 pb-2 text-[9.5px] font-bold uppercase tracking-[0.18em] text-gov-200">Administrasi</p>
                     <div class="space-y-0.5">
                         <a href="{{ route('pengguna.index') }}" class="gov-nav {{ request()->routeIs('pengguna.*') ? 'gov-nav-active' : '' }}">
                             <x-icon name="users" class="h-[18px] w-[18px] shrink-0" /> Pengguna
@@ -90,12 +90,12 @@
 
         <div class="border-t border-white/10 px-3 py-3">
             <div class="flex items-center gap-2.5 px-1 py-2">
-                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gov-800 text-[11px] font-bold text-gold-300 ring-1 ring-inset ring-white/15">
-                    {{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->map(fn ($k) => mb_substr($k, 0, 1))->take(2)->implode('') }}
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-white/10 text-gold-300 ring-1 ring-inset ring-white/15">
+                    <x-icon name="user" class="h-[18px] w-[18px]" />
                 </span>
                 <div class="min-w-0">
                     <p class="truncate text-[13px] font-semibold text-white">{{ auth()->user()->name }}</p>
-                    <p class="truncate text-[10.5px] text-gov-300">{{ \Illuminate\Support\Str::headline(auth()->user()->role->nama ?? '-') }}{{ auth()->user()->unit ? ' · ' . auth()->user()->unit->nama : '' }}</p>
+                    <p class="truncate text-[10.5px] text-gov-200">{{ \Illuminate\Support\Str::headline(auth()->user()->role->nama ?? '-') }}{{ auth()->user()->unit ? ' · ' . auth()->user()->unit->nama : '' }}</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}" class="mt-2">
@@ -104,7 +104,7 @@
                     <x-icon name="logout" class="h-4 w-4" /> Keluar
                 </button>
             </form>
-            <p class="mt-2.5 text-center text-[10px] tracking-wide text-gov-300/50">{{ $identitas->namaUnit() }} · {{ now()->year }}</p>
+            <p class="mt-2.5 text-center text-[10px] tracking-wide text-gov-200">{{ $identitas->namaUnit() }} · {{ now()->year }}</p>
         </div>
     </aside>
 
@@ -149,8 +149,8 @@
 
                 <div class="relative">
                     <button type="button" class="flex items-center gap-2 rounded-md border border-slate-200 py-1.5 pl-1.5 pr-2 text-left transition hover:bg-slate-50" @click="profil = !profil">
-                        <span class="flex h-7 w-7 items-center justify-center rounded bg-gov-700 text-[11px] font-bold text-white">
-                            {{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->map(fn ($k) => mb_substr($k, 0, 1))->take(2)->implode('') }}
+                        <span class="flex h-7 w-7 items-center justify-center rounded bg-gov-700 text-white">
+                            <x-icon name="user" class="h-4 w-4" />
                         </span>
                         <span class="hidden sm:block">
                             <span class="block max-w-[10rem] truncate text-[12px] font-semibold text-slate-700">{{ auth()->user()->name }}</span>

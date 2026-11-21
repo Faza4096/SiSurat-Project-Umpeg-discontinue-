@@ -131,7 +131,7 @@
     }
 
     .gov-nav {
-        @apply flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium text-gov-100/75 transition hover:bg-white/10 hover:text-white;
+        @apply flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium text-gov-100 transition hover:bg-white/10 hover:text-white;
     }
 
     /* Scrollbar tipis tanpa track putih, agar latar navy tidak terpotong. */
