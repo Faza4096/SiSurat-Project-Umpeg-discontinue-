@@ -150,7 +150,8 @@ tersisa hanya administratif: pengguna, data master, log, dan pengaturan instansi
 - Penghapusan memakai **SoftDeletes** (`deleted_at`) untuk `surat_masuk`, `surat_keluar`, dan
   `disposisi`; berkas di disk tidak dihapus agar jejak arsip tetap utuh.
 - Pengguna yang memiliki riwayat surat hanya **dinonaktifkan** (`users.aktif = false`).
-- **Hapus permanen** dibuka dari kartu *Zona berbahaya* yang terpisah di bawah detail surat, lalu
+- **Hapus permanen** dibuka dari tombol *Hapus Permanen Surat Masuk* di bawah detail surat masuk
+  (kartu *Zona berbahaya* pada detail surat keluar), lalu
   melewati halaman konfirmasi tersendiri: nomor surat harus diketik persis (nomor agenda untuk
   surat masuk, nomor surat untuk surat keluar) sebelum tombol aktif. Hanya **administrator** yang
   boleh melakukannya, untuk surat apa pun statusnya — termasuk yang sudah didisposisi, diproses,

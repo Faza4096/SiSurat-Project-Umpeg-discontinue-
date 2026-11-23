@@ -155,9 +155,10 @@ class SuratMasukController extends Controller
                 'Disposisi yang ikut terhapus' => $suratMasuk->disposisi()->withTrashed()->count(),
                 'Lampiran' => $suratMasuk->lampiran()->count() . ' berkas',
             ],
-            'penjelasan' => 'Disposisi, tujuan disposisi, lampiran, kartu PDF, dan bukti tindak lanjut ikut '
-                . 'dibuang dari basis data dan penyimpanan berkas. Surat keluar yang membalas surat ini tetap ada. '
-                . 'Data yang sudah dihapus tidak dapat dipulihkan.',
+            'peringatan' => 'Tindakan ini membuang surat beserta '
+                . $suratMasuk->disposisi()->withTrashed()->count()
+                . ' disposisi, lampiran, kartu PDF, dan bukti tindak lanjut.',
+            'penjelasan' => 'Berkasnya ikut dibuang dari penyimpanan. Surat keluar yang membalas surat ini tetap ada.',
         ]);
     }
 

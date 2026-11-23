@@ -335,16 +335,9 @@
     </div>
 
     @can('hapusPermanen', $s)
-        <div class="mt-6 rounded-xl border border-red-200 bg-red-50/70 p-5">
-            <p class="text-sm font-bold text-red-800">Zona berbahaya</p>
-            <p class="mt-1 max-w-2xl text-xs leading-relaxed text-red-700">
-                Berbeda dengan <em>Hapus</em> yang hanya memindahkan surat ke arsip terhapus, tindakan ini membuang
-                surat beserta {{ $s->disposisi()->withTrashed()->count() }} disposisi, lampiran, kartu PDF, dan bukti
-                tindak lanjut. Tidak dapat dibatalkan.
-            </p>
-            <a href="{{ route('surat-masuk.hapus-permanen.form', $s) }}"
-               class="mt-3 inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">
-                <x-icon name="trash" class="h-4 w-4" /> Hapus Permanen…
+        <div class="mt-6 flex justify-end">
+            <a href="{{ route('surat-masuk.hapus-permanen.form', $s) }}" class="gov-btn-danger">
+                <x-icon name="trash" class="h-4 w-4" /> Hapus Permanen Surat Masuk
             </a>
         </div>
     @endcan

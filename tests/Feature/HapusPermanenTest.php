@@ -35,13 +35,17 @@ class HapusPermanenTest extends TestCase
 
         $this->actingAs($admin)
             ->get(route('surat-masuk.show', $surat))
-            ->assertSee('Hapus Permanen…')
-            ->assertSee('Zona berbahaya');
+            ->assertSee('Hapus Permanen Surat Masuk')
+            ->assertDontSee('Zona berbahaya');
 
-        $this->actingAs($admin)
+        $konfirmasi = $this->actingAs($admin)
             ->get(route('surat-masuk.hapus-permanen.form', $surat))
             ->assertOk()
-            ->assertSee($surat->no_agenda);
+            ->assertSee($surat->no_agenda)
+            ->assertSee('Tindakan ini membuang surat beserta 0 disposisi, lampiran, kartu PDF, dan bukti tindak lanjut.');
+
+        // Peringatan tidak boleh mengulang subjudul "Tindakan ini tidak dapat dibatalkan.".
+        $this->assertSame(1, substr_count($konfirmasi->getContent(), 'dapat dibatalkan'));
 
         // Tanpa nomor yang diketik persis, surat tidak boleh terhapus.
         $this->actingAs($admin)
@@ -93,7 +97,8 @@ class HapusPermanenTest extends TestCase
         $this->actingAs($admin)
             ->get(route('surat-masuk.hapus-permanen.form', $surat))
             ->assertOk()
-            ->assertSee('Disposisi yang ikut terhapus');
+            ->assertSee('Disposisi yang ikut terhapus')
+            ->assertSee('1 disposisi, lampiran, kartu PDF, dan bukti tindak lanjut');
 
         $this->actingAs($admin)
             ->delete(route('surat-masuk.hapus-permanen', $surat), ['konfirmasi' => $surat->no_agenda])

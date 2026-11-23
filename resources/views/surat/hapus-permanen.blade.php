@@ -11,6 +11,9 @@
     <div class="mx-auto max-w-2xl space-y-4">
         <div class="rounded-xl border border-red-200 bg-red-50/70 p-5">
             <p class="text-sm font-bold text-red-800">Surat ini akan dihapus bersama seluruh jejaknya</p>
+            @isset($peringatan)
+                <p class="mt-1 text-xs leading-relaxed text-red-700">{{ $peringatan }}</p>
+            @endisset
             <dl class="mt-3 space-y-1.5 text-xs text-red-800">
                 @foreach ($rincian as $label => $nilai)
                     <div class="flex justify-between gap-3">
