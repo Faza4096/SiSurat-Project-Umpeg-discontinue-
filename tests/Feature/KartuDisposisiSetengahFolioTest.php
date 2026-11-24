@@ -11,20 +11,20 @@ use Tests\Concerns\BuatData;
 use Tests\TestCase;
 
 /**
- * Regresi tata letak kartu disposisi: kartu harus tetap satu halaman A4 dan
- * tidak ada teks yang melewati area cetak, termasuk saat unit tujuan banyak
- * dan instruksi panjang.
+ * Regresi tata letak kartu disposisi: kartu dicetak pada setengah folio
+ * (16,5 × 21,5 cm), tetap satu halaman, dan tidak ada teks yang melewati area
+ * cetak, termasuk saat unit tujuan banyak dan instruksi panjang.
  */
-class KartuDisposisiA4Test extends TestCase
+class KartuDisposisiSetengahFolioTest extends TestCase
 {
     use BuatData, RefreshDatabase;
 
-    /** Ukuran A4 dalam poin (210 × 297 mm). */
-    private const LEBAR_A4 = 595.28;
+    /** Setengah folio dalam poin (165 × 215 mm). */
+    private const LEBAR = 467.72;
 
-    private const TINGGI_A4 = 841.89;
+    private const TINGGI = 609.45;
 
-    public function test_kartu_dengan_banyak_unit_tujuan_tetap_satu_halaman_a4(): void
+    public function test_kartu_dengan_banyak_unit_tujuan_tetap_satu_halaman_setengah_folio(): void
     {
         Storage::fake('local');
 
@@ -48,14 +48,55 @@ class KartuDisposisiA4Test extends TestCase
         $this->assertSame(1, $this->jumlahHalaman($pdf), 'Kartu disposisi meluber ke halaman kedua.');
 
         [$lebar, $tinggi] = $this->ukuranHalaman($pdf);
-        $this->assertEqualsWithDelta(self::LEBAR_A4, $lebar, 1, 'Lebar halaman bukan A4.');
-        $this->assertEqualsWithDelta(self::TINGGI_A4, $tinggi, 1, 'Tinggi halaman bukan A4.');
+        $this->assertEqualsWithDelta(self::LEBAR, $lebar, 1, 'Lebar halaman bukan setengah folio (16,5 cm).');
+        $this->assertEqualsWithDelta(self::TINGGI, $tinggi, 1, 'Tinggi halaman bukan setengah folio (21,5 cm).');
 
         $this->assertIsiTidakMelewatiAreaCetak($pdf);
 
         // Isi tidak boleh terpotong: unit terakhir dan kalimat terakhir instruksi ikut tercetak.
         $teks = $this->teksPdf($pdf);
         $this->assertStringContainsString('Unit U8', $teks);
+        $this->assertStringContainsString('laporkan hasilnya', $teks);
+    }
+
+    /**
+     * Isi yang lebih panjang dari contoh di atas (perihal beberapa baris, 10 unit
+     * tujuan, instruksi lebih panjang) harus tetap muat satu halaman setengah
+     * folio karena bagian atas kartu dan baris data sudah dirapatkan.
+     */
+    public function test_isi_lebih_panjang_tetap_satu_halaman_setengah_folio(): void
+    {
+        Storage::fake('local');
+
+        $pimpinan = User::factory()->staf()->create();
+
+        $surat = $this->suratMasuk($pimpinan, [
+            'perihal' => 'Permohonan Data Dukung Program Kesehatan Lingkungan untuk Evaluasi Triwulan IV Tahun Anggaran 2026 beserta Rekapitulasi Capaian Kinerja dan Rencana Tindak Lanjut Setiap Puskesmas',
+        ]);
+
+        $units = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $units[] = $this->unit('Bidang Kesehatan ' . $i);
+        }
+
+        $disposisi = $this->disposisi($surat, $pimpinan, $units, [
+            'instruksi' => str_repeat('Segera koordinasikan dengan bidang terkait, siapkan bahan dukung, jadwalkan rapat, dan laporkan hasilnya. ', 12),
+        ]);
+
+        $pdf = $this->pdfKartu($disposisi);
+
+        $this->assertSame(1, $this->jumlahHalaman($pdf), 'Kartu disposisi meluber ke halaman kedua.');
+        $this->assertIsiTidakMelewatiAreaCetak($pdf);
+
+        // Masih ada sisa ruang aman di bawah kartu, bukan sekadar pas di batas halaman.
+        $this->assertGreaterThanOrEqual(
+            10 * 72 / 25.4 + 24,
+            $this->posisiTeksTerbawah($pdf),
+            'Sisa ruang aman di bawah kartu kurang dari 8 mm.'
+        );
+
+        $teks = $this->teksPdf($pdf);
+        $this->assertStringContainsString('Unit Bidang Kesehatan 10', $teks);
         $this->assertStringContainsString('laporkan hasilnya', $teks);
     }
 
@@ -84,13 +125,13 @@ class KartuDisposisiA4Test extends TestCase
 
     /**
      * Setiap baris teks digambar dari titik (x, y) pada koordinat halaman.
-     * Titik itu harus berada di dalam area cetak: margin 15 mm kiri/kanan dan
-     * 14 mm atas/bawah, dengan toleransi 2 poin untuk pembulatan dompdf.
+     * Titik itu harus berada di dalam area cetak: margin 10 mm di semua sisi,
+     * dengan toleransi 2 poin untuk pembulatan dompdf.
      */
     private function assertIsiTidakMelewatiAreaCetak(string $pdf): void
     {
-        $marginX = 15 * 72 / 25.4;
-        $marginY = 14 * 72 / 25.4;
+        $marginX = 10 * 72 / 25.4;
+        $marginY = 10 * 72 / 25.4;
         $toleransi = 2.0;
 
         preg_match_all('/BT\s+(-?[\d.]+)\s+(-?[\d.]+)\s+Td/', $this->teksPdf($pdf), $cocok, PREG_SET_ORDER);
@@ -108,7 +149,7 @@ class KartuDisposisiA4Test extends TestCase
             );
 
             $this->assertLessThanOrEqual(
-                self::LEBAR_A4 - $marginX + $toleransi,
+                self::LEBAR - $marginX + $toleransi,
                 $x,
                 'Teks melewati margin kanan pada baris: ' . $baris[0]
             );
@@ -120,11 +161,19 @@ class KartuDisposisiA4Test extends TestCase
             );
 
             $this->assertLessThanOrEqual(
-                self::TINGGI_A4 - $marginY + $toleransi,
+                self::TINGGI - $marginY + $toleransi,
                 $y,
                 'Teks melewati margin atas pada baris: ' . $baris[0]
             );
         }
+    }
+
+    /** Posisi vertikal teks paling bawah (diukur dari tepi bawah halaman). */
+    private function posisiTeksTerbawah(string $pdf): float
+    {
+        preg_match_all('/BT\s+(-?[\d.]+)\s+(-?[\d.]+)\s+Td/', $this->teksPdf($pdf), $cocok, PREG_SET_ORDER);
+
+        return min(array_map(fn ($baris) => (float) $baris[2], $cocok));
     }
 
     /** Isi stream PDF yang sudah didekompres (operator gambar teks). */

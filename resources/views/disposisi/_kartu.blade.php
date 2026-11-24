@@ -1,153 +1,161 @@
 @php
     /** @var \App\Models\Disposisi $d */
     $statusUnit = ['belum' => 'Belum ditindaklanjuti', 'diproses' => 'Sedang diproses', 'selesai' => 'Selesai'];
-    $tipe = $d->suratMasuk ? 'Surat Masuk' : 'Surat Keluar';
 @endphp
 
 <style>
-    .kd-sheet { width: 100%; border-collapse: collapse; font-family: "Times New Roman", Times, serif; color: #000; }
-    .kd-sheet td { padding: 0; vertical-align: top; }
+    .kd-sheet { width: 100%; font-family: "Times New Roman", Times, serif; font-size: 10.5pt; color: #000; }
 
+    /* Kop instansi: lambang di kiri, nama daerah lalu judul kartu di tengah */
     .kd-kop { width: 100%; border-collapse: collapse; }
     .kd-kop td { vertical-align: middle; }
-    .kd-kop-logo { width: 26mm; }
-    .kd-kop-logo img { width: 22mm; height: auto; }
+    .kd-kop-logo { width: 17mm; }
+    .kd-kop-logo img { width: 13mm; height: auto; }
+    .kd-kop-spacer { width: 8mm; }
     .kd-kop-teks { text-align: center; }
-    .kd-kop-nama { font-size: 14pt; font-weight: bold; line-height: 1.2; letter-spacing: .2px; }
-    .kd-kop-alamat { font-size: 8pt; line-height: 1.35; margin-top: 1mm; }
+    .kd-kop-nama { font-size: 16pt; font-weight: bold; line-height: 1.05; }
+    .kd-kop-judul { font-size: 12.5pt; font-weight: bold; line-height: 1.1; margin-top: .8mm; }
 
-    .kd-garis-ganda { border-top: 3px double #000; margin-top: 2.5mm; }
+    /* Garis ganda dari dua garis 1px berjarak tetap agar sama di peramban dan dompdf. */
+    .kd-garis-ganda { border-top: 1px solid #000; margin-top: 1.6mm; }
+    .kd-garis-ganda > div { height: .7mm; border-bottom: 1px solid #000; }
 
-    .kd-judul { margin: 4mm 0 3.5mm; text-align: center; font-size: 12.5pt; font-weight: bold; letter-spacing: 1.5px; text-decoration: underline; }
+    /* Baris INDEX | TANGGAL PENYELESAIAN, dipisah garis tegak */
+    .kd-atas { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .kd-atas > tbody > tr > td { width: 50%; vertical-align: top; padding: 1.4mm 2mm 1.2mm; border-bottom: 1px solid #000; }
+    .kd-atas > tbody > tr > td.kd-atas-kiri { border-right: 1px solid #000; }
 
-    .kd-blok { width: 100%; border-collapse: collapse; border: 3px double #000; }
-    .kd-blok > tbody > tr > td { border: 1px solid #000; padding: 2mm 2.5mm; }
-    .kd-blok > tbody > tr > td.kd-bersih { padding: 0; }
+    /* Label + titik dua + isi bergaris titik-titik */
+    .kd-baris { width: 100%; border-collapse: collapse; }
+    .kd-baris td { padding: 0; vertical-align: bottom; }
+    .kd-baris td.kd-lbl { width: 64pt; white-space: nowrap; }
+    .kd-baris td.kd-titik-dua { width: 1%; white-space: nowrap; padding: 0 1.6mm; }
 
-    .kd-label { font-size: 7.5pt; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; }
-    .kd-nilai { font-size: 10.5pt; line-height: 1.45; margin-top: 1mm; }
-    .kd-titik { border-bottom: 1px dotted #000; height: 5.5mm; font-size: 10.5pt; line-height: 5.5mm; }
+    .kd-lbl { font-size: 10pt; line-height: 5.8mm; }
+    .kd-titik-dua { font-size: 10pt; line-height: 5.8mm; }
+    .kd-val { width: 100%; font-size: 10pt; line-height: 5.8mm; border-bottom: 1px dotted #000; word-wrap: break-word; }
+    .kd-garis-kosong { height: 5.8mm; border-bottom: 1px dotted #000; margin-top: 1.4mm; }
+    .kd-tanggal { margin-top: 1.4mm; }
 
-    .kd-setengah { width: 50%; }
+    /* Empat baris data surat */
+    .kd-data { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .kd-data td { padding: .3mm 0; vertical-align: bottom; }
+    .kd-data td.kd-lbl-col { width: 15%; font-size: 10pt; line-height: 6.4mm; }
+    .kd-data td.kd-titik-col { width: 3%; font-size: 10pt; line-height: 6.4mm; }
+    .kd-data td.kd-val-col { width: 82%; font-size: 10pt; line-height: 6.4mm; border-bottom: 1px dotted #000; word-wrap: break-word; }
 
-    .kd-data { width: 100%; border-collapse: collapse; }
-    .kd-data td { border: 1px solid #000; padding: 1.8mm 2.5mm; vertical-align: top; }
-    .kd-data td.kd-lbl { width: 30mm; font-size: 9.5pt; font-weight: bold; }
-    .kd-data td.kd-val { font-size: 10.5pt; line-height: 1.45; }
+    /* Dua kolom: instruksi dan tujuan disposisi */
+    .kd-dua { width: 100%; border-collapse: collapse; table-layout: fixed; border-bottom: 1px solid #000; }
+    .kd-dua > tbody > tr > td { padding: 1.6mm; vertical-align: top; height: 64mm; }
+    .kd-dua > tbody > tr > td.kd-kiri { width: 62.5%; border-right: 1px solid #000; }
+    .kd-dua > tbody > tr > td.kd-kanan { width: 37.5%; }
 
-    .kd-dua { width: 100%; border-collapse: collapse; }
-    .kd-dua > tbody > tr > td { border: 1px solid #000; padding: 2mm 2.5mm; vertical-align: top; height: 78mm; }
-    .kd-dua > tbody > tr > td.kd-kolom { width: 50%; }
+    .kd-instruksi { font-size: 7.5pt; line-height: 1.28; margin-top: 1.2mm; white-space: pre-line; }
 
-    .kd-instruksi { font-size: 10.5pt; line-height: 1.55; margin-top: 1.5mm; white-space: pre-line; }
+    .kd-tujuan { width: 100%; border-collapse: collapse; margin-top: 1.4mm; }
+    .kd-tujuan td { border: 0; padding: 0 0 .2mm 0; vertical-align: top; }
+    .kd-tujuan td.kd-kotak-cell { width: 5mm; padding-top: .6mm; }
+    .kd-kotak { display: inline-block; width: 3mm; height: 3mm; border: 1px solid #000; }
+    .kd-unit { font-size: 8pt; line-height: 1.18; }
+    .kd-unit-status { font-size: 6pt; font-style: italic; line-height: 1.15; }
 
-    .kd-tujuan { width: 100%; border-collapse: collapse; margin-top: 1.5mm; }
-    .kd-tujuan td { border: 0; padding: 0 0 2mm 0; vertical-align: top; }
-    .kd-tujuan td.kd-kotak-cell { width: 6mm; padding-top: .6mm; }
-    .kd-kotak { display: inline-block; width: 3.4mm; height: 3.4mm; border: 1px solid #000; }
-    .kd-unit { font-size: 10.5pt; font-weight: bold; line-height: 1.3; }
-    .kd-unit-status { font-size: 8pt; font-style: italic; }
-
-    .kd-catatan { font-size: 8pt; font-style: italic; margin-top: 2.5mm; }
+    .kd-catatan { font-size: 7.5pt; font-style: italic; margin-top: 1.2mm; }
 
     .kd-halaman { page-break-after: always; }
     .kd-halaman-terakhir { page-break-after: auto; }
 </style>
 
-<table class="kd-sheet">
-    <tr>
-        <td>
-            <table class="kd-kop">
-                <tr>
-                    <td class="kd-kop-logo">
-                        @if (! empty($logo))
-                            <img src="{{ $logo }}" alt="Lambang {{ $instansi->nama }}">
-                        @endif
-                    </td>
-                    <td class="kd-kop-teks">
-                        <div class="kd-kop-nama">{{ $instansi->namaKop() }}</div>
-                        @if ($instansi->alamatLengkap())
-                            <div class="kd-kop-alamat">{{ $instansi->alamatLengkap() }}</div>
-                        @endif
-                    </td>
-                    <td class="kd-kop-logo"></td>
-                </tr>
-            </table>
+<div class="kd-sheet">
+    <table class="kd-kop">
+        <tr>
+            <td class="kd-kop-logo">
+                @if (! empty($logo))
+                    <img src="{{ $logo }}" alt="Lambang {{ $instansi->nama }}">
+                @endif
+            </td>
+            <td class="kd-kop-teks">
+                <div class="kd-kop-nama">{{ $instansi->namaKop() }}</div>
+                <div class="kd-kop-judul">KARTU DISPOSISI</div>
+            </td>
+            <td class="kd-kop-spacer"></td>
+        </tr>
+    </table>
 
-            <div class="kd-garis-ganda"></div>
-            <div class="kd-judul">KARTU DISPOSISI</div>
+    <div class="kd-garis-ganda"><div></div></div>
 
-            <table class="kd-blok">
-                <tr>
-                    <td class="kd-setengah">
-                        <div class="kd-label">Index</div>
-                        <div class="kd-titik">{{ $d->indeks }}</div>
-                        <div class="kd-titik">&nbsp;</div>
-                    </td>
-                    <td class="kd-setengah">
-                        <div class="kd-label">Tanggal Penyelesaian</div>
-                        <div class="kd-nilai">{{ $d->tgl_penyelesaian?->translatedFormat('d F Y') ?: '&nbsp;' }}</div>
-                        <div class="kd-titik">&nbsp;</div>
-                    </td>
-                </tr>
+    <table class="kd-atas">
+        <tr>
+            <td class="kd-atas-kiri">
+                <table class="kd-baris">
+                    <tr>
+                        <td class="kd-lbl">INDEX</td>
+                        <td class="kd-titik-dua">:</td>
+                        <td class="kd-val">{{ $d->indeks }}</td>
+                    </tr>
+                </table>
+                <div class="kd-garis-kosong"></div>
+            </td>
+            <td>
+                <div class="kd-lbl">TANGGAL PENYELESAIAN</div>
+                <div class="kd-val kd-tanggal">{{ $d->tgl_penyelesaian?->translatedFormat('d F Y') }}</div>
+            </td>
+        </tr>
+    </table>
 
-                <tr>
-                    <td colspan="2" class="kd-bersih">
-                        <table class="kd-data">
-                            <tr>
-                                <td class="kd-lbl">Dari</td>
-                                <td class="kd-val">: {{ $d->asal() }}</td>
-                            </tr>
-                            <tr>
-                                <td class="kd-lbl">Perihal</td>
-                                <td class="kd-val">
-                                    : {{ $d->perihal() }}
-                                    <div class="kd-titik">&nbsp;</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="kd-lbl">Tgl. Surat</td>
-                                <td class="kd-val">: {{ $d->tanggalSurat()?->translatedFormat('d F Y') ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td class="kd-lbl">No. Surat</td>
-                                <td class="kd-val">: {{ $d->nomorSuratAsli() }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
+    <table class="kd-data">
+        <tr>
+            <td class="kd-lbl-col">Dari</td>
+            <td class="kd-titik-col">:</td>
+            <td class="kd-val-col">{{ $d->asal() }}</td>
+        </tr>
+        <tr>
+            <td class="kd-lbl-col">Perihal</td>
+            <td class="kd-titik-col">:</td>
+            <td class="kd-val-col">{{ $d->perihal() }}</td>
+        </tr>
+        <tr>
+            <td class="kd-lbl-col"></td>
+            <td class="kd-titik-col"></td>
+            <td class="kd-val-col">&nbsp;</td>
+        </tr>
+        <tr>
+            <td class="kd-lbl-col">Tgl. Surat</td>
+            <td class="kd-titik-col">:</td>
+            <td class="kd-val-col">{{ $d->tanggalSurat()?->translatedFormat('d F Y') }}</td>
+        </tr>
+        <tr>
+            <td class="kd-lbl-col">No. Surat</td>
+            <td class="kd-titik-col">:</td>
+            <td class="kd-val-col">{{ $d->nomorSuratAsli() }}</td>
+        </tr>
+    </table>
 
-                <tr>
-                    <td colspan="2" class="kd-bersih">
-                        <table class="kd-dua">
-                            <tr>
-                                <td class="kd-kolom">
-                                    <div class="kd-label">Instruksi / Informasi *)</div>
-                                    <div class="kd-instruksi">{{ $d->instruksi }}</div>
-                                </td>
-                                <td class="kd-kolom">
-                                    <div class="kd-label">Diteruskan Kepada :</div>
-                                    <table class="kd-tujuan">
-                                        @forelse ($d->tujuan as $t)
-                                            <tr>
-                                                <td class="kd-kotak-cell"><span class="kd-kotak"></span></td>
-                                                <td>
-                                                    <div class="kd-unit">{{ $t->unit?->nama ?? '-' }}</div>
-                                                    <div class="kd-unit-status">{{ $statusUnit[$t->status_tindak_lanjut] ?? ucfirst($t->status_tindak_lanjut) }}</div>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr><td colspan="2" class="kd-instruksi">—</td></tr>
-                                        @endforelse
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
+    <div class="kd-garis-ganda"><div></div></div>
 
-            <div class="kd-catatan">*) Coret yang tidak perlu.</div>
-        </td>
-    </tr>
-</table>
+    <table class="kd-dua">
+        <tr>
+            <td class="kd-kiri">
+                <div class="kd-lbl">INSTRUKSI / INFORMASI *)</div>
+                <div class="kd-instruksi">{{ $d->instruksi }}</div>
+            </td>
+            <td class="kd-kanan">
+                <div class="kd-lbl">DITERUSKAN KEPADA:</div>
+                <table class="kd-tujuan">
+                    @forelse ($d->tujuan as $t)
+                        <tr>
+                            <td class="kd-kotak-cell"><span class="kd-kotak"></span></td>
+                            <td>
+                                <div class="kd-unit">{{ $t->unit?->nama ?? '-' }}</div>
+                                <div class="kd-unit-status">{{ $statusUnit[$t->status_tindak_lanjut] ?? ucfirst($t->status_tindak_lanjut) }}</div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="2" class="kd-unit">—</td></tr>
+                    @endforelse
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div class="kd-catatan">*) Coret yang tidak perlu.</div>
+</div>

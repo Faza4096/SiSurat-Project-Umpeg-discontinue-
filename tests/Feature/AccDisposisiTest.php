@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Disposisi;
 use App\Models\User;
 use App\Notifications\DisposisiBaru;
+use App\Services\KartuDisposisiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -116,7 +117,7 @@ class AccDisposisiTest extends TestCase
         $unit = $this->unit('UMPEG');
         $surat = $this->suratMasuk($tu);
         $disposisi = $this->disposisi($surat, $pimpinan, [$unit]);
-        app(\App\Services\KartuDisposisiService::class)->simpan($disposisi);
+        app(KartuDisposisiService::class)->simpan($disposisi);
 
         $this->actingAs($tu)->get(route('disposisi.pdf', $disposisi))
             ->assertOk()->assertHeader('content-type', 'application/pdf');
@@ -126,6 +127,29 @@ class AccDisposisiTest extends TestCase
 
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin)->get(route('disposisi.pdf', $disposisi))->assertOk();
+    }
+
+    public function test_nama_berkas_pdf_kartu_mengikuti_isi_lembar(): void
+    {
+        $tu = User::factory()->staf()->create();
+        $pimpinan = User::factory()->staf()->create();
+        $unit = $this->unit();
+        $surat = $this->suratMasuk($tu, ['perihal' => 'Undangan Rapat Koordinasi']);
+        $disposisi = $this->disposisi($surat, $pimpinan, [$unit]);
+        app(KartuDisposisiService::class)->simpan($disposisi);
+
+        $nama = $disposisi->fresh()->namaBerkasKartu();
+
+        $this->assertSame(
+            'Kartu Disposisi - '.str_replace('/', '_', $surat->no_agenda)
+                .' - Undangan Rapat Koordinasi - '.$disposisi->tgl_disposisi->format('Y-m-d').'.pdf',
+            $nama
+        );
+        $this->assertStringNotContainsString('/', $nama);
+
+        $this->actingAs($tu)->get(route('disposisi.pdf', $disposisi))
+            ->assertOk()
+            ->assertDownload($nama);
     }
 
     public function test_cetak_massal_menghasilkan_satu_pdf(): void

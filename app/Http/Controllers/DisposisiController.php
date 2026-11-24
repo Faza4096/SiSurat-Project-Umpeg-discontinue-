@@ -123,7 +123,7 @@ class DisposisiController extends Controller
         $disposisi = app(KartuDisposisiService::class)->pastikan($disposisi);
         LogAktivitas::catat('kartu.unduh', $disposisi->nomorSurat());
 
-        return Storage::download($disposisi->kartu_path, $disposisi->kartu_nama ?: 'kartu-disposisi.pdf');
+        return Storage::download($disposisi->kartu_path, $disposisi->namaBerkasKartu());
     }
 
     /** Cetak/unduh beberapa kartu sekaligus dalam satu PDF. */
@@ -141,7 +141,7 @@ class DisposisiController extends Controller
             $this->authorize('unduhKartu', $item);
         }
 
-        LogAktivitas::catat('kartu.unduh.massal', $items->count() . ' kartu disposisi');
+        LogAktivitas::catat('kartu.unduh.massal', $items->count().' kartu disposisi');
 
         return app(KartuDisposisiService::class)->unduhBanyak($items);
     }

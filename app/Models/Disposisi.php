@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Disposisi extends Model
 {
@@ -80,7 +82,7 @@ class Disposisi extends Model
      * Penerima notifikasi disposisi: pengguna unit tujuan, tetapi untuk surat
      * rahasia hanya staf/administrator yang boleh menerimanya.
      */
-    public function penerimaNotifikasi(?int $unitId = null): \Illuminate\Database\Eloquent\Collection
+    public function penerimaNotifikasi(?int $unitId = null): Collection
     {
         $unit = $unitId === null ? $this->tujuan()->pluck('unit_id') : collect([$unitId]);
         $penerima = User::whereIn('unit_id', $unit);
@@ -108,7 +110,7 @@ class Disposisi extends Model
     {
         return $this->suratMasuk?->no_agenda
             ?? $this->suratKeluar?->no_surat
-            ?? ('DIS-' . $this->id);
+            ?? ('DIS-'.$this->id);
     }
 
     public function perihal(): string
@@ -126,6 +128,28 @@ class Disposisi extends Model
     public function nomorSuratAsli(): string
     {
         return $this->suratMasuk?->no_surat ?? $this->suratKeluar?->no_surat ?? '-';
+    }
+
+    /**
+     * Nama berkas PDF kartu yang mengikuti isi lembar disposisi (nomor surat,
+     * perihal, tanggal) agar mudah dicari saat akan dicetak.
+     */
+    public function namaBerkasKartu(): string
+    {
+        $bagian = [
+            'Kartu Disposisi',
+            $this->nomorSurat(),
+            Str::limit((string) $this->perihal(), 60, ''),
+            $this->tgl_disposisi?->format('Y-m-d'),
+        ];
+
+        $nama = implode(' - ', array_filter($bagian, fn ($b) => filled($b) && $b !== '-'));
+
+        // Ganti karakter yang tidak sah pada nama berkas, mis. garis miring nomor surat.
+        $nama = preg_replace('/[\\\\\/:*?"<>|]+/u', '_', $nama);
+        $nama = preg_replace('/\s+/u', ' ', $nama);
+
+        return Str::limit(trim($nama, ' ._-'), 120, '').'.pdf';
     }
 
     /** "Dari" pada kartu: pengirim surat masuk, atau unit pembuat surat keluar. */

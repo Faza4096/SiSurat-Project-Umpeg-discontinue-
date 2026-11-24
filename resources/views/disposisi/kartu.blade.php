@@ -7,42 +7,46 @@
     <link rel="icon" type="image/png" href="{{ asset('img/lambang-kabupaten-bogor.png') }}">
     @vite(['resources/css/app.css'])
     <style>
-        @page { size: A4 portrait; margin: 14mm 15mm; }
+        /* Setengah folio: 16,5 cm × 21,5 cm. */
+        @page { size: 165mm 215mm; margin: 10mm; }
 
         .kartu-kertas {
             box-sizing: border-box;
-            width: 210mm;
+            width: 165mm;
             max-width: 100%;
             margin: 0 auto;
-            padding: 14mm 15mm;
+            padding: 10mm;
             background: #fff;
             border: 1px solid #d7dee7;
         }
 
-        @media screen and (max-width: 900px) {
-            .kartu-kertas { padding: 8mm 6mm; }
+        @media screen and (max-width: 760px) {
+            .kartu-kertas { padding: 6mm 5mm; }
+            .kd-kop-logo { width: 16mm; }
+            .kd-kop-logo img { width: 14mm; }
+            .kd-kop-nama { font-size: 11pt; }
+            .kd-data > tbody > tr > td.kd-lbl-col { width: 19mm; font-size: 8.5pt; }
+            .kd-dua > tbody > tr > td { height: auto; }
         }
 
-        /* Di layar HP kartu dipadatkan agar tetap terbaca tanpa menggeser ke samping. */
-        @media screen and (max-width: 640px) {
-            .kartu-kertas { padding: 6mm 4mm; }
-            .kd-kop-logo { width: 18mm; }
-            .kd-kop-logo img { width: 16mm; }
-            .kd-kop-nama { font-size: 11pt; }
-            .kd-kop-alamat { font-size: 7pt; }
-            .kd-data td.kd-lbl { width: 22mm; font-size: 8.5pt; }
-            .kd-blok > tbody > tr > td { padding: 1.6mm 2mm; }
-            .kd-dua > tbody > tr > td,
-            .kd-dua > tbody > tr > td.kd-kolom {
+        /* Di layar HP kedua kolom ditumpuk agar tetap terbaca tanpa menggeser ke samping. */
+        @media screen and (max-width: 520px) {
+            .kd-atas > tbody > tr > td { display: block; width: 100%; }
+            .kd-atas > tbody > tr > td + td { border-left: 0; }
+            .kd-dua > tbody > tr > td.kd-kiri,
+            .kd-dua > tbody > tr > td.kd-kanan {
                 display: block;
                 width: 100%;
                 height: auto;
-                border: 0;
+                border-right: 0;
+                border-bottom: 0;
             }
-            .kd-dua > tbody > tr > td.kd-kolom + td.kd-kolom {
-                border-top: 1px solid #000;
+            .kd-dua > tbody > tr > td.kd-kiri {
+                border-bottom: 1px solid #000;
+                min-height: 30mm;
             }
-            .kd-instruksi { font-size: 9.5pt; }
+            .kd-dua > tbody > tr > td.kd-kanan { min-height: 20mm; }
+            .kd-instruksi { font-size: 8.5pt; }
         }
 
         @media print {
@@ -58,9 +62,9 @@
     $logo = $instansi->logoDataUri();
 @endphp
 
-<div class="toolbar-kartu mx-auto mb-4 flex w-full max-w-[210mm] flex-wrap items-center justify-between gap-3 border border-slate-200 bg-white px-4 py-3">
+<div class="toolbar-kartu mx-auto mb-4 flex w-full max-w-[165mm] flex-wrap items-center justify-between gap-3 border border-slate-200 bg-white px-4 py-3">
     <div class="min-w-0">
-        <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Kartu Disposisi</p>
+        <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Kartu Disposisi · ½ Folio</p>
         <p class="truncate font-mono text-sm font-semibold text-gov-900">{{ $d->nomorSurat() }}</p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
