@@ -75,8 +75,9 @@ class SuratMasuk extends Model
     }
 
     /**
-     * Staf dan admin melihat semua surat.
-     * Akun lain hanya surat unitnya (lewat disposisi) dan tidak pernah surat rahasia.
+     * Administrator, Petugas TU, dan Pimpinan melihat semua surat.
+     * Staf/Umpeg hanya surat yang didisposisikan ke unitnya; sifat rahasia
+     * membatasi antarunit, bukan memblokir unit tujuan disposisi.
      */
     public function bolehDilihatOleh(?User $user): bool
     {
@@ -84,11 +85,11 @@ class SuratMasuk extends Model
             return false;
         }
 
-        if ($user->punyaRole('admin', 'staf')) {
+        if ($user->bolehLihatSemuaSurat()) {
             return true;
         }
 
-        if ($this->isRahasia() || $user->unit_id === null) {
+        if ($user->unit_id === null) {
             return false;
         }
 
@@ -99,12 +100,11 @@ class SuratMasuk extends Model
 
     public function scopeTerlihatOleh(Builder $query, User $user): Builder
     {
-        if ($user->punyaRole('admin', 'staf')) {
+        if ($user->bolehLihatSemuaSurat()) {
             return $query;
         }
 
-        return $query->where('sifat', '!=', 'rahasia')
-            ->whereHas('disposisi.tujuan', fn ($q) => $q->where('unit_id', $user->unit_id));
+        return $query->whereHas('disposisi.tujuan', fn ($q) => $q->where('unit_id', $user->unit_id));
     }
 
     public function sudahDidisposisi(): bool

@@ -2,7 +2,7 @@
     <x-auth.heading eyebrow="Portal Tata Naskah Dinas" judul="Masuk ke SiSurat"
                     keterangan="Masuk dengan akun dinas untuk mengelola surat dan disposisi." />
 
-    <x-auth-session-status class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700" :status="session('status')" />
+    <x-auth-session-status class="mb-4 rounded-lg border border-leaf-200 bg-leaf-50 px-3 py-2 text-sm text-leaf-700" :status="session('status')" />
 
     <form method="POST" action="{{ route('login') }}" class="space-y-4">
         @csrf

@@ -62,7 +62,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-[820px] divide-y divide-slate-100">
+            <table class="gov-table-w820 divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
                         <th class="gov-th">Agenda / Perihal</th>

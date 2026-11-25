@@ -19,17 +19,17 @@ class SuratKeluarPolicy
 
     public function create(User $user): bool
     {
-        return $user->punyaRole('staf', 'admin');
+        return $user->bolehKelolaSurat();
     }
 
     public function update(User $user, SuratKeluar $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->bisaDiubah();
+        return $user->bolehKelolaSurat() && $surat->bisaDiubah();
     }
 
     public function delete(User $user, SuratKeluar $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->bisaDihapus();
+        return $user->bolehKelolaSurat() && $surat->bisaDihapus();
     }
 
     /**
@@ -43,7 +43,7 @@ class SuratKeluarPolicy
 
     public function ajukan(User $user, SuratKeluar $surat): bool
     {
-        return $user->punyaRole('staf', 'admin')
+        return $user->bolehKelolaSurat()
             && in_array($surat->status, ['draf', 'revisi'], true);
     }
 
@@ -52,24 +52,24 @@ class SuratKeluarPolicy
         return $this->acc($user, $surat);
     }
 
-    /** ACC hanya dari status menunggu_ttd. */
+    /** ACC hanya dari status menunggu_ttd dan hanya oleh pimpinan. */
     public function acc(User $user, SuratKeluar $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->status === 'menunggu_ttd';
+        return $user->bolehBeriDisposisi() && $surat->status === 'menunggu_ttd';
     }
 
     public function tolak(User $user, SuratKeluar $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->status === 'menunggu_ttd';
+        return $user->bolehBeriDisposisi() && $surat->status === 'menunggu_ttd';
     }
 
     public function kirim(User $user, SuratKeluar $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->status === 'disetujui';
+        return $user->bolehKelolaSurat() && $surat->status === 'disetujui';
     }
 
     public function arsipkan(User $user, SuratKeluar $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->status === 'terkirim';
+        return $user->bolehKelolaSurat() && $surat->status === 'terkirim';
     }
 }

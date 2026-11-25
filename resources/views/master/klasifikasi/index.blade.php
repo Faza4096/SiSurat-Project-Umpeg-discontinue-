@@ -14,7 +14,7 @@
             <p class="text-xs text-slate-500">{{ $items->total() }} kode</p>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-[620px] divide-y divide-slate-100">
+            <table class="gov-table-w620 divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
                         <th class="gov-th">Kode</th>

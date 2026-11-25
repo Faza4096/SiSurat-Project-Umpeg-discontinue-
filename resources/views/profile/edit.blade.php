@@ -8,6 +8,12 @@
         <div class="space-y-4 lg:col-span-2">
             <div class="gov-card p-5 sm:p-6">
                 <div class="max-w-xl">
+                    @include('profile.partials.update-photo-form')
+                </div>
+            </div>
+
+            <div class="gov-card p-5 sm:p-6">
+                <div class="max-w-xl">
                     @include('profile.partials.update-profile-information-form')
                 </div>
             </div>

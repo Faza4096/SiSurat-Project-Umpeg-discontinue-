@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -45,9 +44,6 @@ class Disposisi extends Model
         return $this->hasMany(DisposisiTujuan::class);
     }
 
-    /** Peran yang tetap boleh menyentuh surat rahasia. */
-    public const PERAN_OPERATOR = ['admin', 'staf'];
-
     /** Surat induk disposisi bertanda rahasia. */
     public function isRahasia(): bool
     {
@@ -57,8 +53,8 @@ class Disposisi extends Model
     }
 
     /**
-     * Staf dan admin melihat semua disposisi; akun lain hanya disposisi yang
-     * ditujukan ke unitnya dan surat induknya bukan rahasia.
+     * Administrator, Petugas TU, dan Pimpinan melihat semua disposisi; akun lain
+     * hanya disposisi yang ditujukan ke unitnya. Sifat rahasia membatasi antarunit.
      */
     public function bolehDilihatOleh(?User $user): bool
     {
@@ -66,12 +62,8 @@ class Disposisi extends Model
             return false;
         }
 
-        if ($user->punyaRole('admin', 'staf')) {
+        if ($user->bolehLihatSemuaSurat()) {
             return true;
-        }
-
-        if ($this->isRahasia()) {
-            return false;
         }
 
         return $user->unit_id !== null
@@ -79,26 +71,14 @@ class Disposisi extends Model
     }
 
     /**
-     * Penerima notifikasi disposisi: pengguna unit tujuan, tetapi untuk surat
-     * rahasia hanya staf/administrator yang boleh menerimanya.
+     * Penerima notifikasi disposisi: seluruh pengguna unit tujuan, termasuk
+     * Staf/Umpeg yang bertugas menindaklanjuti disposisi surat rahasia.
      */
     public function penerimaNotifikasi(?int $unitId = null): Collection
     {
         $unit = $unitId === null ? $this->tujuan()->pluck('unit_id') : collect([$unitId]);
-        $penerima = User::whereIn('unit_id', $unit);
 
-        if ($this->isRahasia()) {
-            $penerima->whereHas('role', fn ($q) => $q->whereIn('nama', self::PERAN_OPERATOR));
-        }
-
-        return $penerima->get();
-    }
-
-    /** Hanya disposisi yang surat induknya bukan rahasia. */
-    public function scopeBukanRahasia(Builder $query): Builder
-    {
-        return $query->whereDoesntHave('suratMasuk', fn ($s) => $s->where('sifat', 'rahasia'))
-            ->whereDoesntHave('suratKeluar', fn ($s) => $s->where('sifat', 'rahasia'));
+        return User::whereIn('unit_id', $unit)->get();
     }
 
     public function sudahLewatBatas(): bool

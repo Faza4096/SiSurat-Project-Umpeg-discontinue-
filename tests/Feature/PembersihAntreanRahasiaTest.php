@@ -17,61 +17,60 @@ use Tests\Concerns\BuatData;
 use Tests\TestCase;
 
 /**
- * Job notifikasi yang terlanjur masuk antrean sebelum aturan penerima
- * diperketat tidak boleh sempat terkirim ke non-operator bila suratnya
- * bertanda rahasia.
+ * Job notifikasi surat rahasia untuk penerima di luar unit tujuan disposisi
+ * tidak boleh sempat terkirim. Job untuk staf unit tujuan tetap dibiarkan.
  */
 class PembersihAntreanRahasiaTest extends TestCase
 {
     use BuatData, RefreshDatabase;
 
-    public function test_job_notifikasi_rahasia_untuk_non_operator_dibatalkan(): void
+    public function test_job_notifikasi_rahasia_untuk_penerima_tanpa_akses_dibatalkan(): void
     {
-        $staf = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
-        $stafUnit = User::factory()->staf()->unit($unit)->create();
+        $pegawai = User::factory()->staf()->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
-        $rahasia = $this->suratMasuk($staf, ['sifat' => 'rahasia']);
-        $biasa = $this->suratMasuk($staf);
+        $rahasia = $this->suratMasuk($tu, ['sifat' => 'rahasia']);
+        $biasa = $this->suratMasuk($tu);
         $disposisiRahasia = $this->disposisi($rahasia, $pimpinan, [$unit]);
         $disposisiBiasa = $this->disposisi($biasa, $pimpinan, [$unit]);
         $tujuanRahasia = $disposisiRahasia->tujuan()->first();
 
         $antre = Queue::connection('database');
+        $antre->push(new SendQueuedNotifications($luar, new DisposisiBaru($disposisiRahasia), ['database']));
+        $antre->push(new SendQueuedNotifications($luar, new DisposisiBaru($disposisiBiasa), ['database']));
         $antre->push(new SendQueuedNotifications($pegawai, new DisposisiBaru($disposisiRahasia), ['database']));
-        $antre->push(new SendQueuedNotifications($pegawai, new DisposisiBaru($disposisiBiasa), ['database']));
-        $antre->push(new SendQueuedNotifications($stafUnit, new DisposisiBaru($disposisiRahasia), ['database']));
-        $antre->push(new SendQueuedNotifications($pegawai, new StatusTindakLanjut($tujuanRahasia, 'diproses', 'Pimpinan'), ['database']));
-        $antre->push(new SendQueuedNotifications($pegawai, new PengingatBatasWaktu($tujuanRahasia), ['database']));
+        $antre->push(new SendQueuedNotifications($luar, new StatusTindakLanjut($tujuanRahasia, 'diproses', 'Pimpinan'), ['database']));
+        $antre->push(new SendQueuedNotifications($luar, new PengingatBatasWaktu($tujuanRahasia), ['database']));
 
         $this->assertSame(5, DB::table('jobs')->count());
 
         $dihapus = app(PembersihAntreanRahasia::class)->jalankan();
 
-        // Yang tersisa: disposisi biasa untuk pegawai dan disposisi rahasia untuk staf unit.
+        // Yang tersisa: disposisi biasa untuk unit luar dan disposisi rahasia untuk unit tujuan.
         $this->assertSame(3, $dihapus);
         $this->assertSame(2, DB::table('jobs')->count());
     }
 
-    public function test_job_gagal_notifikasi_rahasia_untuk_non_operator_dihapus(): void
+    public function test_job_gagal_notifikasi_rahasia_untuk_penerima_tanpa_akses_dihapus(): void
     {
-        $staf = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
-        $stafUnit = User::factory()->staf()->unit($unit)->create();
+        $pegawai = User::factory()->staf()->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
-        $rahasia = $this->suratMasuk($staf, ['sifat' => 'rahasia']);
-        $biasa = $this->suratMasuk($staf);
+        $rahasia = $this->suratMasuk($tu, ['sifat' => 'rahasia']);
+        $biasa = $this->suratMasuk($tu);
         $disposisiRahasia = $this->disposisi($rahasia, $pimpinan, [$unit]);
         $disposisiBiasa = $this->disposisi($biasa, $pimpinan, [$unit]);
 
         $antre = Queue::connection('database');
+        $antre->push(new SendQueuedNotifications($luar, new DisposisiBaru($disposisiRahasia), ['database']));
+        $antre->push(new SendQueuedNotifications($luar, new DisposisiBaru($disposisiBiasa), ['database']));
         $antre->push(new SendQueuedNotifications($pegawai, new DisposisiBaru($disposisiRahasia), ['database']));
-        $antre->push(new SendQueuedNotifications($pegawai, new DisposisiBaru($disposisiBiasa), ['database']));
-        $antre->push(new SendQueuedNotifications($stafUnit, new DisposisiBaru($disposisiRahasia), ['database']));
 
         // Tiru job yang gagal: payload antrean dipindahkan ke failed_jobs.
         foreach (DB::table('jobs')->get() as $job) {
@@ -90,7 +89,7 @@ class PembersihAntreanRahasiaTest extends TestCase
 
         $dihapus = app(PembersihAntreanRahasia::class)->jalankan();
 
-        // Yang tersisa: disposisi biasa untuk pegawai dan disposisi rahasia untuk staf unit.
+        // Yang tersisa: disposisi biasa untuk unit luar dan disposisi rahasia untuk unit tujuan.
         $this->assertSame(1, $dihapus);
         $this->assertSame(2, DB::table('failed_jobs')->count());
     }
@@ -100,15 +99,15 @@ class PembersihAntreanRahasiaTest extends TestCase
         // Tidak memakai DDL agar transaksi RefreshDatabase di MySQL tidak ter-commit.
         Schema::shouldReceive('hasTable')->andReturnUsing(fn (string $tabel) => $tabel === 'jobs');
 
-        $staf = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
-        $disposisi = $this->disposisi($this->suratMasuk($staf, ['sifat' => 'rahasia']), $pimpinan, [$unit]);
+        $disposisi = $this->disposisi($this->suratMasuk($tu, ['sifat' => 'rahasia']), $pimpinan, [$unit]);
 
         Queue::connection('database')->push(
-            new SendQueuedNotifications($pegawai, new DisposisiBaru($disposisi), ['database'])
+            new SendQueuedNotifications($luar, new DisposisiBaru($disposisi), ['database'])
         );
 
         // Tabel jobs tetap dibersihkan meski failed_jobs tidak ada.

@@ -3,7 +3,7 @@
                     keterangan="Tautan verifikasi telah dikirim ke email akun. Buka tautan untuk mengaktifkan akses." />
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+        <div class="mb-4 rounded-lg border border-leaf-200 bg-leaf-50 px-3 py-2 text-sm text-leaf-700">
             Tautan verifikasi baru telah dikirim.
         </div>
     @endif

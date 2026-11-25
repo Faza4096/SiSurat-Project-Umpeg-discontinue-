@@ -13,32 +13,46 @@ class DashboardTest extends TestCase
 {
     use RefreshDatabase, BuatData;
 
-    public function test_staf_melihat_antrean_operator(): void
+    public function test_petugas_tu_melihat_antrean_pengelolaan_surat(): void
     {
-        $staf = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
 
-        $menungguDisposisi = $this->suratMasuk($staf);
-        $pengajuan = $this->suratKeluar($staf, ['status' => 'menunggu_ttd']);
-        $sudahAcc = $this->suratKeluar($staf, ['status' => 'disetujui']);
-        $selesai = $this->suratMasuk($staf, ['status' => 'selesai']);
+        $menungguDisposisi = $this->suratMasuk($tu);
+        $sudahAcc = $this->suratKeluar($tu, ['status' => 'disetujui']);
+        $selesai = $this->suratMasuk($tu, ['status' => 'selesai']);
 
-        $this->actingAs($staf)->get(route('dashboard'))
+        $this->actingAs($tu)->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Surat masuk menunggu ACC')
+            ->assertSee('Belum diberi disposisi')
             ->assertSee($menungguDisposisi->perihal)
-            ->assertSee('Surat keluar menunggu ACC')
-            ->assertSee($pengajuan->hal)
             ->assertSee('Sudah di-ACC, belum dikirim')
             ->assertSee($sudahAcc->hal)
             ->assertSee('Belum diarsipkan')
             ->assertSee($selesai->perihal)
-            ->assertDontSee('Belum diberi disposisi');
+            ->assertDontSee('Surat masuk menunggu ACC');
+    }
+
+    public function test_staf_melihat_disposisi_unitnya(): void
+    {
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
+        $unit = $this->unit('UMPEG');
+        $staf = User::factory()->staf()->unit($unit)->create();
+
+        $surat = $this->suratMasuk($tu, ['perihal' => 'Perihal disposisi unit']);
+        $this->disposisi($surat, $pimpinan, [$unit]);
+
+        $this->actingAs($staf)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Disposisi untuk unit saya')
+            ->assertSee('Perihal disposisi unit')
+            ->assertDontSee('Surat masuk menunggu ACC');
     }
 
     public function test_pimpinan_melihat_antrean_dengan_sifat_mendesak_lebih_dulu(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
 
         $biasa = $this->suratMasuk($tu, ['sifat' => 'biasa']);
         $segera = $this->suratMasuk($tu, ['sifat' => 'segera']);
@@ -104,9 +118,9 @@ class DashboardTest extends TestCase
             ->assertDontSee(route('pengaturan.edit'));
     }
 
-    public function test_admin_melihat_antrean_pimpinan_dan_tu_tanpa_pengulangan(): void
+    public function test_admin_melihat_ringkasan_sistem_tanpa_antrean_operasional(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $admin = User::factory()->admin()->create();
 
         $menungguAcc = $this->suratMasuk($tu);
@@ -114,17 +128,18 @@ class DashboardTest extends TestCase
 
         $this->actingAs($admin)->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Surat masuk menunggu ACC')
-            ->assertSee($menungguAcc->perihal)
-            ->assertSee('Sudah di-ACC, belum dikirim')
-            ->assertSee($sudahAcc->hal)
-            ->assertDontSee('Belum diberi disposisi');
+            ->assertSee('Akun Pengguna')
+            ->assertDontSee('Surat masuk menunggu ACC')
+            ->assertDontSee('Sudah di-ACC, belum dikirim')
+            ->assertDontSee('Belum diarsipkan')
+            ->assertDontSee($menungguAcc->perihal)
+            ->assertDontSee($sudahAcc->hal);
     }
 
     public function test_dashboard_tidak_menjalankan_query_berlebihan(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
 
         foreach (range(1, 5) as $i) {
@@ -132,7 +147,7 @@ class DashboardTest extends TestCase
             $this->disposisi($surat, $pimpinan, [$unit], ['tgl_penyelesaian' => now()->addDays($i)]);
         }
 
-        $staf = User::factory()->create(['unit_id' => $unit->id]);
+        $staf = User::factory()->staf()->create(['unit_id' => $unit->id]);
 
         DB::enableQueryLog();
         $this->actingAs($staf)->get(route('dashboard'))->assertOk();
@@ -142,12 +157,13 @@ class DashboardTest extends TestCase
         $this->assertLessThanOrEqual(25, $jumlah, "Dashboard menjalankan {$jumlah} query.");
     }
 
-    public function test_ringkasan_terbuka_menyembunyikan_disposisi_rahasia_dari_non_operator(): void
+    public function test_ringkasan_terbuka_menghitung_disposisi_rahasia_unit_tujuan(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+        $staf = User::factory()->staf()->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
         $this->disposisi($this->suratMasuk($tu), $pimpinan, [$unit]);
         $this->disposisi(
@@ -156,14 +172,19 @@ class DashboardTest extends TestCase
             [$unit],
         );
 
-        $response = $this->actingAs($pegawai)->get(route('dashboard'))->assertOk();
+        // Rahasia membatasi antarunit: unit tujuan menghitung keduanya.
+        $response = $this->actingAs($staf)->get(route('dashboard'))->assertOk();
+        $this->assertSame(2, $response->viewData('ringkasan')['terbuka']);
 
-        $this->assertSame(1, $response->viewData('ringkasan')['terbuka']);
+        $this->assertSame(
+            0,
+            $this->actingAs($luar)->get(route('dashboard'))->viewData('ringkasan')['terbuka'],
+        );
     }
 
     public function test_ringkasan_hanya_menghitung_surat_bulan_berjalan(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
 
         $this->suratMasuk($tu, ['tgl_diterima' => now()->toDateString()]);
         $this->suratMasuk($tu, ['tgl_diterima' => now()->subMonths(2)->toDateString()]);

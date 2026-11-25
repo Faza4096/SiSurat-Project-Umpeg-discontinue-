@@ -36,7 +36,7 @@
                     <label class="gov-label" for="role_id">Peran</label>
                     <select id="role_id" name="role_id" required class="gov-input">
                         @foreach ($roles as $role)
-                            <option value="{{ $role->id }}" @selected(old('role_id', $item->role_id) == $role->id)>{{ ucfirst(str_replace('_', ' ', $role->nama)) }}</option>
+                            <option value="{{ $role->id }}" @selected(old('role_id', $item->role_id) == $role->id)>{{ $role->sebutan }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -61,8 +61,10 @@
             <div class="gov-card p-5">
                 <p class="gov-card-title">Hak Akses</p>
                 <ul class="mt-2 space-y-2 text-xs leading-relaxed text-slate-500">
-                    <li><span class="font-semibold text-slate-700">Admin</span>: mengelola pengguna, unit, klasifikasi, instansi, pengaturan, dan log aktivitas.</li>
-                    <li><span class="font-semibold text-slate-700">Staf</span>: mencatat surat masuk dan keluar, mengelola disposisi, menyetujui surat, mengirim, dan mengarsipkan.</li>
+                    <li><span class="font-semibold text-slate-700">Administrator</span>: pengelolaan teknis dan administrasi sistem (pengguna, data master, pengaturan, log).</li>
+                    <li><span class="font-semibold text-slate-700">Pimpinan</span>: pemeriksaan surat dan pemberian instruksi disposisi.</li>
+                    <li><span class="font-semibold text-slate-700">Petugas TU</span>: pencatatan, pengiriman, dan pengarsipan surat.</li>
+                    <li><span class="font-semibold text-slate-700">Staf/Umpeg</span>: pelaksanaan instruksi disposisi unitnya.</li>
                 </ul>
             </div>
         </div>

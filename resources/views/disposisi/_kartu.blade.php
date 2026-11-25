@@ -1,6 +1,5 @@
 @php
     /** @var \App\Models\Disposisi $d */
-    $statusUnit = ['belum' => 'Belum ditindaklanjuti', 'diproses' => 'Sedang diproses', 'selesai' => 'Selesai'];
 @endphp
 
 <style>
@@ -50,14 +49,13 @@
     .kd-dua > tbody > tr > td.kd-kiri { width: 62.5%; border-right: 1px solid #000; }
     .kd-dua > tbody > tr > td.kd-kanan { width: 37.5%; }
 
-    .kd-instruksi { font-size: 7.5pt; line-height: 1.28; margin-top: 1.2mm; white-space: pre-line; }
+    .kd-instruksi { font-size: 10pt; line-height: 1.3; margin-top: 1.2mm; white-space: pre-line; overflow-wrap: break-word; }
 
     .kd-tujuan { width: 100%; border-collapse: collapse; margin-top: 1.4mm; }
     .kd-tujuan td { border: 0; padding: 0 0 .2mm 0; vertical-align: top; }
     .kd-tujuan td.kd-kotak-cell { width: 5mm; padding-top: .6mm; }
     .kd-kotak { display: inline-block; width: 3mm; height: 3mm; border: 1px solid #000; }
-    .kd-unit { font-size: 8pt; line-height: 1.18; }
-    .kd-unit-status { font-size: 6pt; font-style: italic; line-height: 1.15; }
+    .kd-unit { font-size: 10pt; line-height: 1.3; }
 
     .kd-catatan { font-size: 7.5pt; font-style: italic; margin-top: 1.2mm; }
 
@@ -146,7 +144,6 @@
                             <td class="kd-kotak-cell"><span class="kd-kotak"></span></td>
                             <td>
                                 <div class="kd-unit">{{ $t->unit?->nama ?? '-' }}</div>
-                                <div class="kd-unit-status">{{ $statusUnit[$t->status_tindak_lanjut] ?? ucfirst($t->status_tindak_lanjut) }}</div>
                             </td>
                         </tr>
                     @empty

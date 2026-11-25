@@ -89,13 +89,13 @@
                 </span>
                 <input name="cari" value="{{ request('cari') }}" placeholder="Cari instruksi, agenda, atau perihal…" class="gov-input pl-9">
             </div>
-            <select name="unit" class="gov-input">
+            <select name="unit" class="gov-input" x-on:change="$el.form.requestSubmit()">
                 <option value="">Semua unit tujuan</option>
                 @foreach ($units as $u)
                     <option value="{{ $u->id }}" @selected(request('unit') == $u->id)>{{ $u->nama }}</option>
                 @endforeach
             </select>
-            <select name="status" class="gov-input">
+            <select name="status" class="gov-input" x-on:change="$el.form.requestSubmit()">
                 <option value="">Semua tindak lanjut</option>
                 @foreach (App\Models\DisposisiTujuan::STATUS as $nilai => $label)
                     <option value="{{ $nilai }}" @selected(request('status') === $nilai)>{{ $label }}</option>

@@ -7,7 +7,7 @@
     <a href="{{ route('laporan.index', ['jenis' => 'masuk']) }}" class="gov-btn-outline">
         <x-icon name="chart" class="h-4 w-4" /> Laporan
     </a>
-    @if (auth()->user()->punyaRole('staf', 'admin'))
+    @if (auth()->user()->bolehKelolaSurat())
         <a href="{{ route('surat-masuk.create') }}" class="gov-btn">
             <x-icon name="plus" class="h-4 w-4" /> Catat Surat Masuk
         </a>
@@ -23,25 +23,25 @@
                 </span>
                 <input name="cari" value="{{ request('cari') }}" placeholder="Cari nomor agenda, nomor surat, atau perihal…" class="gov-input pl-9">
             </div>
-            <select name="status" class="gov-input">
+            <select name="status" class="gov-input" x-on:change="$el.form.requestSubmit()">
                 <option value="">Semua status</option>
                 @foreach (App\Models\SuratMasuk::STATUS as $nilai => $label)
                     <option value="{{ $nilai }}" @selected(request('status') === $nilai)>{{ $label }}</option>
                 @endforeach
             </select>
-            <select name="sifat" class="gov-input">
+            <select name="sifat" class="gov-input" x-on:change="$el.form.requestSubmit()">
                 <option value="">Semua sifat</option>
                 @foreach (['biasa' => 'Biasa', 'segera' => 'Segera', 'penting' => 'Penting', 'rahasia' => 'Rahasia'] as $nilai => $label)
                     <option value="{{ $nilai }}" @selected(request('sifat') === $nilai)>{{ $label }}</option>
                 @endforeach
             </select>
-            <select name="instansi_id" class="gov-input">
+            <select name="instansi_id" class="gov-input" x-on:change="$el.form.requestSubmit()">
                 <option value="">Semua instansi</option>
                 @foreach ($instansi as $i)
                     <option value="{{ $i->id }}" @selected(request('instansi_id') == $i->id)>{{ $i->nama }}</option>
                 @endforeach
             </select>
-            <select name="klasifikasi_id" class="gov-input">
+            <select name="klasifikasi_id" class="gov-input" x-on:change="$el.form.requestSubmit()">
                 <option value="">Semua klasifikasi</option>
                 @foreach ($klasifikasi as $k)
                     <option value="{{ $k->id }}" @selected(request('klasifikasi_id') == $k->id)>{{ $k->kode }}</option>
@@ -71,35 +71,35 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-[900px] divide-y divide-slate-100">
+            <table class="gov-table-w900 divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
-                        <th class="gov-th">No. Agenda</th>
+                        <th class="gov-th w-[144px]">No. Agenda</th>
                         <th class="gov-th">Perihal &amp; Nomor Surat</th>
-                        <th class="gov-th">Pengirim</th>
-                        <th class="gov-th">Tanggal</th>
-                        <th class="gov-th">Sifat</th>
-                        <th class="gov-th">Status</th>
-                        <th class="gov-th text-right">Aksi</th>
+                        <th class="gov-th w-[176px]">Pengirim</th>
+                        <th class="gov-th w-[148px]">Tanggal</th>
+                        <th class="gov-th w-[96px]">Sifat</th>
+                        <th class="gov-th w-[128px]">Status</th>
+                        <th class="gov-th w-[112px] pr-5 text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($surat as $s)
                         <tr class="hover:bg-slate-50/70">
-                            <td class="gov-td whitespace-nowrap font-mono text-xs font-semibold text-gov-800">{{ $s->no_agenda }}</td>
+                            <td class="gov-td whitespace-nowrap font-mono text-xs font-semibold tabular-nums text-gov-800">{{ $s->no_agenda }}</td>
                             <td class="gov-td">
                                 <a href="{{ route('surat-masuk.show', $s) }}" class="font-semibold text-slate-800 hover:text-gov-700">{{ $s->perihal }}</a>
                                 <p class="mt-0.5 font-mono text-xs text-slate-500">{{ $s->no_surat }}</p>
                             </td>
-                            <td class="gov-td text-xs">{{ $s->instansi?->nama ?? '-' }}</td>
-                            <td class="gov-td whitespace-nowrap text-xs">
+                            <td class="gov-td text-xs leading-snug">{{ $s->instansi?->nama ?? '-' }}</td>
+                            <td class="gov-td whitespace-nowrap text-xs tabular-nums">
                                 {{ $s->tgl_diterima?->translatedFormat('d M Y') }}
                                 <p class="text-slate-400">Surat: {{ $s->tgl_surat?->translatedFormat('d M Y') }}</p>
                             </td>
                             <td class="gov-td"><x-badge :value="$s->sifat" type="sifat" /></td>
                             <td class="gov-td"><x-badge :value="$s->status" /></td>
                             <td class="gov-td">
-                                <div class="flex items-center justify-end gap-1.5">
+                                <div class="flex items-center justify-end gap-1">
                                     <a href="{{ route('surat-masuk.show', $s) }}" class="rounded-md p-1.5 text-slate-500 hover:bg-gov-50 hover:text-gov-700" title="Lihat">
                                         <x-icon name="eye" class="h-4 w-4" />
                                     </a>

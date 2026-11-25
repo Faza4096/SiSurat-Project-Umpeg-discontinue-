@@ -20,33 +20,34 @@
             border: 1px solid #d7dee7;
         }
 
+        /* Awalan .kartu-kertas dipakai agar aturan ini menang atas gaya kartu yang
+           ikut ter-render setelah blok <style> di kepala halaman. */
         @media screen and (max-width: 760px) {
             .kartu-kertas { padding: 6mm 5mm; }
-            .kd-kop-logo { width: 16mm; }
-            .kd-kop-logo img { width: 14mm; }
-            .kd-kop-nama { font-size: 11pt; }
-            .kd-data > tbody > tr > td.kd-lbl-col { width: 19mm; font-size: 8.5pt; }
-            .kd-dua > tbody > tr > td { height: auto; }
+            .kartu-kertas .kd-kop-logo { width: 16mm; }
+            .kartu-kertas .kd-kop-logo img { width: 14mm; }
+            .kartu-kertas .kd-kop-nama { font-size: 12.5pt; }
+            .kartu-kertas .kd-data > tbody > tr > td.kd-lbl-col { width: 19mm; font-size: 9pt; }
+            .kartu-kertas .kd-dua > tbody > tr > td { height: auto; }
         }
 
         /* Di layar HP kedua kolom ditumpuk agar tetap terbaca tanpa menggeser ke samping. */
         @media screen and (max-width: 520px) {
-            .kd-atas > tbody > tr > td { display: block; width: 100%; }
-            .kd-atas > tbody > tr > td + td { border-left: 0; }
-            .kd-dua > tbody > tr > td.kd-kiri,
-            .kd-dua > tbody > tr > td.kd-kanan {
+            .kartu-kertas .kd-atas > tbody > tr > td { display: block; width: 100%; }
+            .kartu-kertas .kd-atas > tbody > tr > td.kd-atas-kiri { border-right: 0; }
+            .kartu-kertas .kd-dua > tbody > tr > td.kd-kiri,
+            .kartu-kertas .kd-dua > tbody > tr > td.kd-kanan {
                 display: block;
                 width: 100%;
                 height: auto;
                 border-right: 0;
                 border-bottom: 0;
             }
-            .kd-dua > tbody > tr > td.kd-kiri {
+            .kartu-kertas .kd-dua > tbody > tr > td.kd-kiri {
                 border-bottom: 1px solid #000;
                 min-height: 30mm;
             }
-            .kd-dua > tbody > tr > td.kd-kanan { min-height: 20mm; }
-            .kd-instruksi { font-size: 8.5pt; }
+            .kartu-kertas .kd-dua > tbody > tr > td.kd-kanan { min-height: 20mm; }
         }
 
         @media print {

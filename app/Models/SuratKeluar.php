@@ -34,6 +34,7 @@ class SuratKeluar extends Model
         'sifat', 'lampiran_ket', 'isi_ringkas', 'status', 'penandatangan_id', 'dibuat_oleh',
         'surat_masuk_id', 'file_final_path', 'file_final_nama', 'tgl_kirim', 'penerima',
         'metode_kirim', 'no_bukti_kirim', 'catatan_revisi', 'diajukan_pada', 'disetujui_pada',
+        'diarsipkan_pada', 'diarsipkan_oleh',
     ];
 
     protected $casts = [
@@ -41,6 +42,7 @@ class SuratKeluar extends Model
         'tgl_kirim' => 'date',
         'diajukan_pada' => 'datetime',
         'disetujui_pada' => 'datetime',
+        'diarsipkan_pada' => 'datetime',
     ];
 
     public function instansi()
@@ -66,6 +68,11 @@ class SuratKeluar extends Model
     public function pembuat()
     {
         return $this->belongsTo(User::class, 'dibuat_oleh');
+    }
+
+    public function pengarsip()
+    {
+        return $this->belongsTo(User::class, 'diarsipkan_oleh');
     }
 
     public function lampiran()
@@ -96,22 +103,31 @@ class SuratKeluar extends Model
             return false;
         }
 
-        if ($user->punyaRole('admin', 'staf')) {
+        if ($user->bolehLihatSemuaSurat()) {
             return true;
         }
 
-        return ! $this->isRahasia()
-            && $user->unit_id !== null
-            && $user->unit_id === $this->unit_id;
+        if ($user->unit_id === null) {
+            return false;
+        }
+
+        // Rahasia membatasi antarunit: unit pembuat dan unit tujuan disposisi tetap boleh.
+        return $user->unit_id === $this->unit_id
+            || $this->disposisiKartu()
+                ->whereHas('tujuan', fn ($q) => $q->where('unit_id', $user->unit_id))
+                ->exists();
     }
 
     public function scopeTerlihatOleh(Builder $query, User $user): Builder
     {
-        if ($user->punyaRole('admin', 'staf')) {
+        if ($user->bolehLihatSemuaSurat()) {
             return $query;
         }
 
-        return $query->where('sifat', '!=', 'rahasia')->where('unit_id', $user->unit_id);
+        return $query->where(function ($q) use ($user) {
+            $q->where('unit_id', $user->unit_id)
+                ->orWhereHas('disposisiKartu.tujuan', fn ($t) => $t->where('unit_id', $user->unit_id));
+        });
     }
 
     public function bisaDiubah(): bool

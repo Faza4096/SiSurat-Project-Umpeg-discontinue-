@@ -32,15 +32,15 @@ class NotifikasiTest extends TestCase
     {
         Queue::fake();
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
 
         $surat = $this->suratMasuk($tu);
         $tujuan = $this->disposisi($surat, $pimpinan, [$unit])->tujuan()->first();
 
-        $this->actingAs($pimpinan)->patch(route('tujuan.status', $tujuan), ['status' => 'selesai'])
+        $this->actingAs($tu)->patch(route('tujuan.status', $tujuan), ['status' => 'selesai'])
             ->assertSessionHasNoErrors();
 
         Queue::assertPushed(
@@ -51,8 +51,8 @@ class NotifikasiTest extends TestCase
 
     public function test_notifikasi_tersimpan_di_database_dan_tampil_di_halaman(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
 
@@ -72,12 +72,12 @@ class NotifikasiTest extends TestCase
         $this->assertNotNull($notifikasi->fresh()->read_at);
     }
 
-    public function test_perubahan_status_hanya_dikabarkan_bila_oleh_pimpinan_atau_tu(): void
+    public function test_perubahan_status_hanya_dikabarkan_bila_oleh_petugas_tu(): void
     {
         Notification::fake();
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
 
@@ -88,20 +88,21 @@ class NotifikasiTest extends TestCase
             ->assertSessionHasNoErrors();
         Notification::assertNotSentTo($staf, StatusTindakLanjut::class);
 
-        $this->actingAs($pimpinan)->patch(route('tujuan.status', $tujuan), ['status' => 'selesai'])
+        $this->actingAs($tu)->patch(route('tujuan.status', $tujuan), ['status' => 'selesai'])
             ->assertSessionHasNoErrors();
         Notification::assertSentTo($staf, StatusTindakLanjut::class);
     }
 
-    public function test_disposisi_surat_rahasia_tidak_dikabarkan_ke_pegawai_unit_tujuan(): void
+    public function test_disposisi_surat_rahasia_dikabarkan_ke_unit_tujuan(): void
     {
         Notification::fake();
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
-        $stafUnit = User::factory()->staf()->unit($unit)->create();
+        $pegawai = User::factory()->staf()->unit($unit)->create();
+        $operatorUnit = User::factory()->petugasTu()->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
         $surat = $this->suratMasuk($tu, ['sifat' => 'rahasia']);
 
@@ -112,55 +113,61 @@ class NotifikasiTest extends TestCase
             'tujuan' => [$unit->id],
         ])->assertSessionHasNoErrors();
 
-        Notification::assertNotSentTo($pegawai, DisposisiBaru::class);
-        Notification::assertSentTo($stafUnit, DisposisiBaru::class);
+        // Staf unit tujuan harus menerima disposisi rahasia untuk ditindaklanjuti.
+        Notification::assertSentTo($pegawai, DisposisiBaru::class);
+        Notification::assertSentTo($operatorUnit, DisposisiBaru::class);
+        Notification::assertNotSentTo($luar, DisposisiBaru::class);
     }
 
-    public function test_status_tindak_lanjut_surat_rahasia_hanya_dikabarkan_ke_operator_unit(): void
+    public function test_status_tindak_lanjut_surat_rahasia_dikabarkan_ke_unit_tujuan(): void
     {
         Notification::fake();
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
-        $stafUnit = User::factory()->staf()->unit($unit)->create();
+        $pegawai = User::factory()->staf()->unit($unit)->create();
+        $operatorUnit = User::factory()->petugasTu()->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
         $surat = $this->suratMasuk($tu, ['sifat' => 'rahasia']);
         $tujuan = $this->disposisi($surat, $pimpinan, [$unit])->tujuan()->first();
 
-        $this->actingAs($pimpinan)->patch(route('tujuan.status', $tujuan), ['status' => 'diproses'])
+        $this->actingAs($tu)->patch(route('tujuan.status', $tujuan), ['status' => 'diproses'])
             ->assertSessionHasNoErrors();
 
-        Notification::assertNotSentTo($pegawai, StatusTindakLanjut::class);
-        Notification::assertSentTo($stafUnit, StatusTindakLanjut::class);
+        Notification::assertSentTo($pegawai, StatusTindakLanjut::class);
+        Notification::assertSentTo($operatorUnit, StatusTindakLanjut::class);
+        Notification::assertNotSentTo($luar, StatusTindakLanjut::class);
     }
 
-    public function test_pengingat_batas_waktu_surat_rahasia_hanya_untuk_operator_unit(): void
+    public function test_pengingat_batas_waktu_surat_rahasia_dikirim_ke_unit_tujuan(): void
     {
         Notification::fake();
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
-        $stafUnit = User::factory()->staf()->unit($unit)->create();
+        $pegawai = User::factory()->staf()->unit($unit)->create();
+        $operatorUnit = User::factory()->petugasTu()->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
         $surat = $this->suratMasuk($tu, ['sifat' => 'rahasia']);
         $this->disposisi($surat, $pimpinan, [$unit], ['tgl_penyelesaian' => now()->addDay()]);
 
         $this->artisan('disposisi:ingatkan')->assertSuccessful();
 
-        Notification::assertNotSentTo($pegawai, PengingatBatasWaktu::class);
-        Notification::assertSentTo($stafUnit, PengingatBatasWaktu::class);
+        Notification::assertSentTo($pegawai, PengingatBatasWaktu::class);
+        Notification::assertSentTo($operatorUnit, PengingatBatasWaktu::class);
+        Notification::assertNotSentTo($luar, PengingatBatasWaktu::class);
     }
 
     public function test_command_pengingat_mengirim_notifikasi_batas_waktu(): void
     {
         Notification::fake();
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
 
@@ -176,8 +183,8 @@ class NotifikasiTest extends TestCase
     {
         Notification::fake();
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
 

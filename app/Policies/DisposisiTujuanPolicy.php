@@ -23,9 +23,12 @@ class DisposisiTujuanPolicy
         return $surat?->bolehDilihatOleh($user) ?? false;
     }
 
-    /** Staf boleh mengubah tujuan mana pun; selain itu hanya unit tujuan sendiri. */
+    /**
+     * Staf/Umpeg mengubah tujuan unitnya sendiri; Petugas TU boleh memperbarui
+     * unit mana pun untuk pemantauan tindak lanjut.
+     */
     public function ubah(User $user, DisposisiTujuan $tujuan): bool
     {
-        return $user->punyaRole('staf') || $tujuan->bolehDiubahOleh($user);
+        return $user->punyaRole('petugas_tu') || $tujuan->bolehDiubahOleh($user);
     }
 }

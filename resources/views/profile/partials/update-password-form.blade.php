@@ -31,7 +31,7 @@
 
             @if (session('status') === 'password-updated')
                 <p x-data="{ tampil: true }" x-show="tampil" x-transition x-init="setTimeout(() => tampil = false, 2500)"
-                   class="text-[12px] font-semibold text-emerald-700">Tersimpan.</p>
+                   class="text-[12px] font-semibold text-leaf-700">Tersimpan.</p>
             @endif
         </div>
     </form>

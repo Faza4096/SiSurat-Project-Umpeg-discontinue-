@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Disposisi;
 use App\Models\Instansi;
 use App\Models\Klasifikasi;
 use App\Models\SuratKeluar;
@@ -37,7 +36,7 @@ class LaporanController extends Controller
         ])
             // Abaikan baris milik disposisi yang sudah dibatalkan (soft delete).
             ->whereHas('disposisi')
-            // Non-operator hanya melihat unitnya sendiri, tanpa surat rahasia.
+            // Staf/Umpeg hanya melihat baris unitnya sendiri; peran lain melihat semua.
             ->terlihatOleh($request->user())
             ->when($request->query('unit'), fn ($x, $unit) => $x->where('unit_id', $unit))
             ->when($request->query('status'), fn ($x, $status) => $x->where('status_tindak_lanjut', $status))
@@ -49,7 +48,7 @@ class LaporanController extends Controller
             ->selectRaw('status_tindak_lanjut, count(*) as jumlah')
             ->groupBy('status_tindak_lanjut')->pluck('jumlah', 'status_tindak_lanjut');
 
-        $operator = $request->user()->punyaRole(...Disposisi::PERAN_OPERATOR);
+        $operator = $request->user()->bolehLihatSemuaSurat();
 
         return view('laporan.tindak-lanjut', [
             'data' => $q->paginate(20)->withQueryString(),

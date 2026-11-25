@@ -13,7 +13,7 @@ class PelaporanTest extends TestCase
 
     public function test_laporan_surat_dapat_difilter(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $surat = $this->suratMasuk($tu);
         $lain = $this->suratMasuk($tu, ['instansi_id' => $this->instansi('Dinas Kesehatan Kab. Bogor')->id]);
 
@@ -26,7 +26,7 @@ class PelaporanTest extends TestCase
 
     public function test_ekspor_excel_menghasilkan_csv(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $surat = $this->suratMasuk($tu);
 
         $response = $this->actingAs($tu)->get(route('laporan.ekspor', ['jenis' => 'masuk']));
@@ -41,7 +41,7 @@ class PelaporanTest extends TestCase
 
     public function test_ekspor_pdf_menghasilkan_berkas_pdf(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $this->suratMasuk($tu);
 
         $response = $this->actingAs($tu)->get(route('laporan.pdf', ['jenis' => 'masuk']));
@@ -53,8 +53,8 @@ class PelaporanTest extends TestCase
 
     public function test_laporan_tindak_lanjut_menampilkan_status_unit(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $surat = $this->suratMasuk($tu);
         $this->disposisi($surat, $pimpinan, [$unit]);
@@ -68,11 +68,11 @@ class PelaporanTest extends TestCase
 
     public function test_laporan_tindak_lanjut_dibatasi_unit_pengguna_bagi_non_operator(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unitSendiri = $this->unit('UMPEG');
         $unitLain = $this->unit('ULA');
-        $pegawai = User::factory()->role('pegawai')->unit($unitSendiri)->create();
+        $pegawai = User::factory()->staf()->unit($unitSendiri)->create();
 
         $milikSendiri = $this->suratMasuk($tu, ['perihal' => 'Perihal unit sendiri']);
         $milikLain = $this->suratMasuk($tu, ['perihal' => 'Perihal unit lain']);
@@ -96,12 +96,13 @@ class PelaporanTest extends TestCase
             ->assertSee($unitLain->nama);
     }
 
-    public function test_laporan_tindak_lanjut_menyembunyikan_surat_rahasia_dari_non_operator(): void
+    public function test_laporan_tindak_lanjut_surat_rahasia_mengikuti_unit_tujuan(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+        $pegawai = User::factory()->staf()->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
         $biasa = $this->suratMasuk($tu, ['perihal' => 'Perihal biasa terlihat']);
         $rahasia = $this->suratMasuk($tu, [
@@ -112,10 +113,18 @@ class PelaporanTest extends TestCase
         $this->disposisi($biasa, $pimpinan, [$unit]);
         $this->disposisi($rahasia, $pimpinan, [$unit]);
 
+        // Staf unit tujuan menindaklanjuti keduanya, termasuk yang rahasia.
         $this->actingAs($pegawai)
             ->get(route('laporan.tindak-lanjut'))
             ->assertOk()
             ->assertSee('Perihal biasa terlihat')
+            ->assertSee('Perihal rahasia tersembunyi');
+
+        // Unit lain tidak melihat baris tersebut.
+        $this->actingAs($luar)
+            ->get(route('laporan.tindak-lanjut'))
+            ->assertOk()
+            ->assertDontSee('Perihal biasa terlihat')
             ->assertDontSee('Perihal rahasia tersembunyi');
 
         $this->actingAs($pimpinan)

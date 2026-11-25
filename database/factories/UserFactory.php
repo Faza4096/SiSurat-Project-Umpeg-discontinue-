@@ -50,6 +50,16 @@ class UserFactory extends Factory
         return $this->role('admin');
     }
 
+    public function petugasTu(): static
+    {
+        return $this->role('petugas_tu');
+    }
+
+    public function pimpinan(): static
+    {
+        return $this->role('pimpinan');
+    }
+
     public function staf(): static
     {
         return $this->role('staf');

@@ -14,14 +14,13 @@ use Tests\TestCase;
 
 /**
  * Berkas surat berada di disk privat dan hanya boleh diunduh lewat rute
- * ber-otorisasi. Akun yang bukan operator (tidak punya peran staf/admin)
- * tidak boleh membuka berkas surat mana pun.
+ * ber-otorisasi. Staf unit lain tidak boleh membuka berkas surat mana pun.
  */
 class OtorisasiUnduhanBerkasTest extends TestCase
 {
     use BuatData, RefreshDatabase;
 
-    private User $staf;
+    private User $operator;
 
     private User $orangLuar;
 
@@ -43,27 +42,27 @@ class OtorisasiUnduhanBerkasTest extends TestCase
 
         $unitTujuan = $this->unit('UMPEG');
 
-        $this->staf = User::factory()->staf()->create();
-        $this->orangLuar = User::factory()->role('pegawai')->unit($this->unit('ULA'))->create();
-        $this->pegawaiUnitTujuan = User::factory()->role('pegawai')->unit($unitTujuan)->create();
+        $this->operator = User::factory()->petugasTu()->create();
+        $this->orangLuar = User::factory()->staf()->unit($this->unit('ULA'))->create();
+        $this->pegawaiUnitTujuan = User::factory()->staf()->unit($unitTujuan)->create();
 
-        $this->suratMasuk = $this->suratMasuk($this->staf);
+        $this->suratMasuk = $this->suratMasuk($this->operator);
         Storage::disk('local')->put('lampiran/uji.pdf', 'isi lampiran');
         $this->suratMasuk->lampiran()->create([
             'nama_file' => 'uji.pdf',
             'path' => 'lampiran/uji.pdf',
             'jenis' => 'scan',
-            'diunggah_oleh' => $this->staf->id,
+            'diunggah_oleh' => $this->operator->id,
         ]);
 
         Storage::disk('local')->put('surat-keluar/final.pdf', 'isi surat final');
-        $this->suratKeluar = $this->suratKeluar($this->staf, [
+        $this->suratKeluar = $this->suratKeluar($this->operator, [
             'status' => 'disetujui',
             'file_final_path' => 'surat-keluar/final.pdf',
             'file_final_nama' => 'final.pdf',
         ]);
 
-        $this->disposisi = $this->disposisi($this->suratMasuk, $this->staf, [$unitTujuan]);
+        $this->disposisi = $this->disposisi($this->suratMasuk, $this->operator, [$unitTujuan]);
         $this->tujuan = $this->disposisi->tujuan()->first();
 
         Storage::disk('local')->put('disposisi/bukti/uji.jpg', 'isi bukti');
@@ -79,7 +78,7 @@ class OtorisasiUnduhanBerkasTest extends TestCase
         ]);
     }
 
-    public function test_akun_bukan_operator_tidak_bisa_mengunduh_berkas_surat(): void
+    public function test_akun_staf_unit_lain_tidak_bisa_mengunduh_berkas_surat(): void
     {
         $this->actingAs($this->orangLuar);
 
@@ -88,9 +87,9 @@ class OtorisasiUnduhanBerkasTest extends TestCase
         }
     }
 
-    public function test_staf_bisa_mengunduh_berkas_yang_berhak(): void
+    public function test_petugas_tu_bisa_mengunduh_berkas_yang_berhak(): void
     {
-        $this->actingAs($this->staf);
+        $this->actingAs($this->operator);
 
         foreach ($this->tautanBerkas() as $nama => $tautan) {
             $this->get($tautan)->assertOk();

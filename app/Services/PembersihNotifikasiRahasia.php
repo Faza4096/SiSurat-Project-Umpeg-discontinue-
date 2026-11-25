@@ -2,48 +2,29 @@
 
 namespace App\Services;
 
+use App\Models\SuratKeluar;
+use App\Models\SuratMasuk;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Notifikasi yang sudah tersimpan sebelum aturan penerima surat rahasia
- * diperketat masih memuat nomor/perihal rahasia di kotak masuk non-operator.
- * Pembersih ini menghapus baris lama tersebut berdasarkan tautan surat yang
- * tersimpan di kolom data.
+ * Surat rahasia hanya boleh dibaca unit yang menerima disposisinya, ditambah
+ * Administrator, Petugas TU, dan Pimpinan. Notifikasi lama yang terlanjur
+ * tersimpan untuk penerima di luar unit tersebut masih memuat nomor/perihal
+ * rahasia, sehingga barisnya dihapus berdasarkan tautan surat pada kolom data.
  */
 class PembersihNotifikasiRahasia
 {
-    private const PERAN_OPERATOR = ['admin', 'staf'];
-
     /** @return int jumlah notifikasi yang dihapus */
     public function jalankan(): int
     {
-        $nonOperator = DB::table('users')
-            ->join('roles', 'roles.id', '=', 'users.role_id')
-            ->whereNotIn('roles.nama', self::PERAN_OPERATOR)
-            ->pluck('users.id')
-            ->all();
-
-        if ($nonOperator === []) {
-            return 0;
-        }
-
-        $rahasia = [
-            'masuk' => DB::table('surat_masuk')->where('sifat', 'rahasia')->pluck('id')->flip()->all(),
-            'keluar' => DB::table('surat_keluar')->where('sifat', 'rahasia')->pluck('id')->flip()->all(),
-        ];
-
-        if ($rahasia['masuk'] === [] && $rahasia['keluar'] === []) {
-            return 0;
-        }
-
         $dihapus = 0;
 
         DB::table('notifications')
-            ->whereIn('notifiable_id', $nonOperator)
-            ->select('id', 'data')
-            ->chunkById(200, function ($baris) use (&$dihapus, $rahasia) {
+            ->select('id', 'notifiable_id', 'data')
+            ->chunkById(200, function ($baris) use (&$dihapus) {
                 $ids = $baris
-                    ->filter(fn ($notifikasi) => $this->menunjukSuratRahasia($notifikasi->data, $rahasia))
+                    ->filter(fn ($notifikasi) => $this->tidakBerhak($notifikasi))
                     ->pluck('id');
 
                 if ($ids->isNotEmpty()) {
@@ -55,15 +36,30 @@ class PembersihNotifikasiRahasia
         return $dihapus;
     }
 
-    /** @param array{masuk: array<int, int>, keluar: array<int, int>} $rahasia */
-    private function menunjukSuratRahasia(?string $data, array $rahasia): bool
+    /** Notifikasi rahasia yang penerimanya tidak lagi berhak membuka surat. */
+    private function tidakBerhak(object $notifikasi): bool
     {
-        $url = json_decode((string) $data, true)['url'] ?? '';
+        $surat = $this->suratRahasia($notifikasi->data);
 
-        if (! is_string($url) || ! preg_match('#/surat-(masuk|keluar)/(\d+)#', $url, $cocok)) {
+        if (! $surat) {
             return false;
         }
 
-        return isset($rahasia[$cocok[1]][(int) $cocok[2]]);
+        return ! $surat->bolehDilihatOleh(User::find($notifikasi->notifiable_id));
+    }
+
+    private function suratRahasia(?string $data): SuratMasuk|SuratKeluar|null
+    {
+        $url = json_decode((string) $data, true)['url'] ?? '';
+
+        if (! is_string($url) || ! preg_match('#/surat-(masuk|keluar)/(\\d+)#', $url, $cocok)) {
+            return null;
+        }
+
+        $surat = $cocok[1] === 'masuk'
+            ? SuratMasuk::find((int) $cocok[2])
+            : SuratKeluar::find((int) $cocok[2]);
+
+        return $surat?->isRahasia() ? $surat : null;
     }
 }

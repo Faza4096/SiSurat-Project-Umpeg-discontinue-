@@ -19,23 +19,23 @@ class SuratMasukPolicy
 
     public function create(User $user): bool
     {
-        return $user->punyaRole('staf', 'admin');
+        return $user->bolehKelolaSurat();
     }
 
     public function update(User $user, SuratMasuk $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->status !== 'diarsipkan';
+        return $user->bolehKelolaSurat() && $surat->status !== 'diarsipkan';
     }
 
     public function delete(User $user, SuratMasuk $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->bisaDihapus();
+        return $user->bolehKelolaSurat() && $surat->bisaDihapus();
     }
 
-    /** ACC & disposisi oleh staf, atau administrator. */
+    /** ACC & disposisi oleh pimpinan, atau administrator. */
     public function acc(User $user, SuratMasuk $surat): bool
     {
-        return $user->punyaRole('staf', 'admin');
+        return $user->bolehBeriDisposisi();
     }
 
     /**
@@ -49,11 +49,11 @@ class SuratMasukPolicy
 
     public function arsipkan(User $user, SuratMasuk $surat): bool
     {
-        return $user->punyaRole('staf', 'admin') && $surat->bisaDiarsipkan();
+        return $user->bolehKelolaSurat() && $surat->bisaDiarsipkan();
     }
 
     public function kelolaLampiran(User $user, SuratMasuk $surat): bool
     {
-        return $user->punyaRole('staf', 'admin');
+        return $user->bolehKelolaSurat();
     }
 }

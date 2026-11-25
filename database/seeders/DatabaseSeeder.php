@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['admin', 'staf'] as $n) {
+        foreach (['admin', 'petugas_tu', 'pimpinan', 'staf'] as $n) {
             Role::firstOrCreate(['nama' => $n]);
         }
 

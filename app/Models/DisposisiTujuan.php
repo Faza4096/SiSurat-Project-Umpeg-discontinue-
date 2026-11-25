@@ -41,10 +41,7 @@ class DisposisiTujuan extends Model
         return $this->belongsTo(User::class, 'selesai_oleh');
     }
 
-    /**
-     * Penerima notifikasi tindak lanjut: pengguna unit tujuan, tetapi untuk
-     * disposisi surat rahasia hanya staf/administrator.
-     */
+    /** Penerima notifikasi tindak lanjut: seluruh pengguna unit tujuan. */
     public function penerimaNotifikasi(): \Illuminate\Database\Eloquent\Collection
     {
         return $this->disposisi?->penerimaNotifikasi($this->unit_id)
@@ -52,8 +49,8 @@ class DisposisiTujuan extends Model
     }
 
     /**
-     * Staf dan admin melihat semua baris tindak lanjut; akun lain hanya baris
-     * unitnya yang surat induknya bukan rahasia, sama seperti akses disposisi.
+     * Administrator, Petugas TU, dan Pimpinan melihat semua baris tindak lanjut;
+     * Staf/Umpeg hanya baris unitnya, termasuk disposisi surat rahasia.
      */
     public function scopeTerlihatOleh(Builder $query, ?User $user): Builder
     {
@@ -61,7 +58,7 @@ class DisposisiTujuan extends Model
             return $query->whereRaw('1 = 0');
         }
 
-        if ($user->punyaRole(...Disposisi::PERAN_OPERATOR)) {
+        if ($user->bolehLihatSemuaSurat()) {
             return $query;
         }
 
@@ -69,25 +66,16 @@ class DisposisiTujuan extends Model
             return $query->whereRaw('1 = 0');
         }
 
-        return $query->where('unit_id', $user->unit_id)
-            ->whereHas('disposisi', fn ($d) => $d->bukanRahasia());
+        return $query->where('unit_id', $user->unit_id);
     }
 
     /**
-     * Hanya unit tujuan (atau admin) yang boleh memperbarui tindak lanjut;
-     * akun non-operator tidak pernah menyentuh disposisi surat rahasia.
+     * Hanya pengguna unit tujuan yang boleh memperbarui tindak lanjut. Sifat
+     * rahasia tidak menghalangi staf unit tujuan menindaklanjuti.
      */
     public function bolehDiubahOleh(?User $user): bool
     {
         if (! $user) {
-            return false;
-        }
-
-        if ($user->punyaRole('admin')) {
-            return true;
-        }
-
-        if ($this->disposisi?->isRahasia()) {
             return false;
         }
 

@@ -14,34 +14,35 @@
     Lompat ke konten
 </a>
 
-<div class="fixed inset-x-0 top-0 z-50 h-[3px] bg-gov-900 no-print" aria-hidden="true">
-    <div class="h-[3px] w-28 bg-gold-400"></div>
+<div class="fixed inset-x-0 top-0 z-50 h-[3px] bg-gradient-to-r from-gov-950 via-gov-600 to-gov-800 no-print" aria-hidden="true">
+    <div class="anim-rule h-[3px] w-28 bg-gold-400"></div>
 </div>
 
-<div class="flex min-h-screen" x-data="{ sidebar: false, profil: false }">
+<div class="flex min-h-screen" x-data="{ sidebar: false, profil: false, maju: 0 }" @keydown.escape.window="sidebar = false; profil = false"
+     @scroll.window.passive="maju = (() => { const h = document.documentElement.scrollHeight - window.innerHeight; return h > 0 ? Math.min(100, Math.max(0, (window.scrollY / h) * 100)) : 0; })()">
 
     <div x-cloak x-show="sidebar" x-transition.opacity class="fixed inset-0 z-30 bg-gov-950/50 lg:hidden" @click="sidebar = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 z-40 flex w-[272px] -translate-x-full flex-col bg-gradient-to-b from-gov-950 to-gov-700 text-gov-100 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
+    <aside class="gov-sidebar fixed inset-y-0 left-0 z-40 flex w-[272px] -translate-x-full flex-col text-gov-100 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
            :class="sidebar ? 'translate-x-0' : '-translate-x-full'">
         <div class="border-b border-white/10 px-5 pb-4 pt-5">
             <div class="flex items-start gap-3">
                 <x-lambang class="h-11 w-11 shrink-0" />
                 <div class="min-w-0 flex-1">
-                    <p class="text-[9px] font-semibold uppercase leading-[1.6] tracking-[0.1em] text-gold-300">{{ $identitas->nama }}</p>
-                    <p class="font-serif text-[21px] font-semibold leading-tight text-white">SiSurat</p>
+                    <p class="text-[9px] font-semibold uppercase leading-[1.7] tracking-[0.09em] text-gold-300">{{ $identitas->nama }}</p>
+                    <p class="mt-1 font-display text-[23px] font-bold leading-[1.2] tracking-[0.015em] text-white">SiSurat</p>
                 </div>
                 <button type="button" class="-mr-1 p-1 text-gov-200 transition hover:text-white lg:hidden" @click="sidebar = false" aria-label="Tutup menu">
                     <x-icon name="close" class="h-5 w-5" />
                 </button>
             </div>
-            <p class="mt-2 text-[10px] uppercase tracking-[0.14em] text-gov-200">Tata Naskah Dinas</p>
-            <div class="mt-3 h-px bg-gradient-to-r from-gold-400/80 via-gold-400/25 to-transparent" aria-hidden="true"></div>
+            <p class="mt-3 font-display text-[10px] font-semibold uppercase tracking-[0.16em] text-gov-200">Tata Naskah Dinas</p>
+            <div class="mt-3 h-px bg-gradient-to-r from-gold-400/80 via-gov-300/40 to-transparent" aria-hidden="true"></div>
         </div>
 
         <nav class="gov-scroll flex-1 space-y-6 overflow-y-auto px-3 py-5" aria-label="Menu utama">
             <div>
-                <p class="px-3 pb-2 text-[9.5px] font-bold uppercase tracking-[0.18em] text-gov-200">Utama</p>
+                <p class="px-3 pb-2 font-display text-[10px] font-bold uppercase tracking-[0.16em] text-gov-200">Utama</p>
                 <div class="space-y-0.5">
                     <a href="{{ route('dashboard') }}" class="gov-nav {{ request()->routeIs('dashboard') ? 'gov-nav-active' : '' }}">
                         <x-icon name="dashboard" class="h-[18px] w-[18px] shrink-0" /> Dashboard
@@ -55,6 +56,9 @@
                     <a href="{{ route('disposisi.index') }}" class="gov-nav {{ request()->routeIs('disposisi.*') ? 'gov-nav-active' : '' }}">
                         <x-icon name="forward" class="h-[18px] w-[18px] shrink-0" /> Disposisi
                     </a>
+                    <a href="{{ route('arsip.index') }}" class="gov-nav {{ request()->routeIs('arsip.*') ? 'gov-nav-active' : '' }}">
+                        <x-icon name="document" class="h-[18px] w-[18px] shrink-0" /> Diarsipkan
+                    </a>
                     <a href="{{ route('laporan.index') }}" class="gov-nav {{ request()->routeIs('laporan.*') ? 'gov-nav-active' : '' }}">
                         <x-icon name="chart" class="h-[18px] w-[18px] shrink-0" /> Laporan
                     </a>
@@ -63,7 +67,7 @@
 
             @if (auth()->user()->punyaRole('admin'))
                 <div>
-                    <p class="px-3 pb-2 text-[9.5px] font-bold uppercase tracking-[0.18em] text-gov-200">Administrasi</p>
+                    <p class="px-3 pb-2 font-display text-[10px] font-bold uppercase tracking-[0.16em] text-gov-200">Administrasi</p>
                     <div class="space-y-0.5">
                         <a href="{{ route('pengguna.index') }}" class="gov-nav {{ request()->routeIs('pengguna.*') ? 'gov-nav-active' : '' }}">
                             <x-icon name="users" class="h-[18px] w-[18px] shrink-0" /> Pengguna
@@ -90,12 +94,16 @@
 
         <div class="border-t border-white/10 px-3 py-3">
             <div class="flex items-center gap-2.5 px-1 py-2">
-                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-white/10 text-gold-300 ring-1 ring-inset ring-white/15">
-                    <x-icon name="user" class="h-[18px] w-[18px]" />
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/10 text-gold-300 ring-1 ring-inset ring-white/15">
+                    @if ($fotoProfilSidebar = auth()->user()->fotoProfilUrl())
+                        <img src="{{ $fotoProfilSidebar }}" alt="Foto profil {{ auth()->user()->name }}" class="h-full w-full object-cover">
+                    @else
+                        <x-icon name="user" class="h-[18px] w-[18px]" />
+                    @endif
                 </span>
                 <div class="min-w-0">
                     <p class="truncate text-[13px] font-semibold text-white">{{ auth()->user()->name }}</p>
-                    <p class="truncate text-[10.5px] text-gov-200">{{ \Illuminate\Support\Str::headline(auth()->user()->role->nama ?? '-') }}{{ auth()->user()->unit ? ' · ' . auth()->user()->unit->nama : '' }}</p>
+                    <p class="truncate text-[10.5px] text-gov-200">{{ auth()->user()->sebutanPeran() }}{{ auth()->user()->unit ? ' · ' . auth()->user()->unit->nama : '' }}</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}" class="mt-2">
@@ -110,14 +118,16 @@
 
     <div class="flex min-w-0 flex-1 flex-col">
         <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur no-print">
-            <div class="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
+            <div class="flex min-h-[3.5rem] items-center gap-3 px-4 py-1.5 sm:min-h-[4rem] sm:px-6 sm:py-2 lg:px-8">
                 <button type="button" class="rounded-md border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 lg:hidden" @click="sidebar = true" aria-label="Buka menu">
                     <x-icon name="menu" class="h-5 w-5" />
                 </button>
 
                 <div class="min-w-0 flex-1">
-                    <p class="truncate font-serif text-[16px] font-semibold leading-tight text-gov-900 sm:hidden">SiSurat</p>
-                    <p class="hidden truncate text-[9.5px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:block">{{ $identitas->nama }}</p>
+                    <p class="truncate font-display text-[16px] font-bold leading-tight tracking-[-0.02em] text-gov-900 sm:hidden">SiSurat</p>
+                    {{-- Identitas ditulis utuh tanpa dipotong elipsis; di HP disembunyikan
+                         agar header setinggi baris ikon saja. --}}
+                    <p class="hidden break-words text-[9.5px] font-semibold uppercase leading-snug tracking-[0.12em] text-slate-500 sm:block">{{ $identitas->nama }} {{ $identitas->namaUnit() }}</p>
                     <nav class="mt-0.5 hidden sm:block" aria-label="Remah roti">
                         <ol class="flex min-w-0 items-center gap-1.5 text-[12px]">
                             @if (request()->routeIs('dashboard'))
@@ -131,7 +141,10 @@
                     </nav>
                 </div>
 
-                @php $belumDibaca = auth()->user()->unreadNotifications()->count(); @endphp
+                @php
+                    $belumDibaca = auth()->user()->unreadNotifications()->count();
+                    $fotoProfil = auth()->user()->fotoProfilUrl();
+                @endphp
                 <a href="{{ route('notifikasi.index') }}" title="Notifikasi"
                    class="relative rounded-md border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-gov-700">
                     <x-icon name="bell" class="h-[18px] w-[18px]" />
@@ -149,12 +162,16 @@
 
                 <div class="relative">
                     <button type="button" class="flex items-center gap-2 rounded-md border border-slate-200 py-1.5 pl-1.5 pr-2 text-left transition hover:bg-slate-50" @click="profil = !profil">
-                        <span class="flex h-7 w-7 items-center justify-center rounded bg-gov-700 text-white">
-                            <x-icon name="user" class="h-4 w-4" />
+                        <span class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gov-700 text-white">
+                            @if ($fotoProfil)
+                                <img src="{{ $fotoProfil }}" alt="" class="h-full w-full object-cover">
+                            @else
+                                <x-icon name="user" class="h-4 w-4" />
+                            @endif
                         </span>
                         <span class="hidden sm:block">
                             <span class="block max-w-[10rem] truncate text-[12px] font-semibold text-slate-700">{{ auth()->user()->name }}</span>
-                            <span class="block text-[9.5px] uppercase tracking-wide text-slate-400">{{ str_replace('_', ' ', auth()->user()->role->nama ?? '-') }}</span>
+                            <span class="block text-[9.5px] uppercase tracking-wide text-slate-400">{{ auth()->user()->sebutanPeran() }}</span>
                         </span>
                         <x-icon name="chevron-down" class="h-4 w-4 text-slate-400" />
                     </button>
@@ -186,31 +203,54 @@
                     </div>
                 </div>
             </div>
+            {{-- Garis kemajuan gulir: tipis, hanya mengikuti posisi baca. --}}
+            <div class="absolute inset-x-0 bottom-0 h-[2px] bg-slate-200/70" aria-hidden="true">
+                <div class="h-full bg-gold-400 transition-[width] duration-150 ease-out" x-bind:style="'width: ' + maju + '%'"></div>
+            </div>
         </header>
 
-        <main id="isi" class="mx-auto w-full max-w-[1360px] flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main id="isi" class="anim-stagger mx-auto w-full max-w-[1360px] flex-1 px-4 py-6 sm:px-6 lg:px-8">
             @if (session('ok'))
-                <div class="mb-5 flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] text-emerald-800">
-                    <x-icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                    <p>{{ session('ok') }}</p>
+                <div x-data="{ tampil: true }" x-show="tampil" x-transition.opacity.duration.200ms
+                     class="mb-5 flex items-start gap-3 rounded-md border border-leaf-200 bg-leaf-50 px-4 py-3 text-[13px] text-leaf-800">
+                    <x-icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-leaf-600" />
+                    <p class="flex-1">{{ session('ok') }}</p>
+                    <button type="button" @click="tampil = false" aria-label="Tutup pemberitahuan"
+                            class="-my-1 -mr-1 shrink-0 rounded p-1 text-leaf-700/70 transition hover:bg-leaf-100 hover:text-leaf-900">
+                        <x-icon name="close" class="h-4 w-4" />
+                    </button>
                 </div>
             @endif
 
             @if (session('err'))
-                <div class="mb-5 flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-800">
+                <div x-data="{ tampil: true }" x-show="tampil" x-transition.opacity.duration.200ms
+                     class="mb-5 flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-800">
                     <x-icon name="close" class="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-                    <p>{{ session('err') }}</p>
+                    <p class="flex-1">{{ session('err') }}</p>
+                    <button type="button" @click="tampil = false" aria-label="Tutup pemberitahuan"
+                            class="-my-1 -mr-1 shrink-0 rounded p-1 text-red-600/70 transition hover:bg-red-100 hover:text-red-900">
+                        <x-icon name="close" class="h-4 w-4" />
+                    </button>
                 </div>
             @endif
 
             @if ($errors->any())
-                <div class="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-800">
-                    <p class="font-semibold">Periksa kembali isian berikut:</p>
-                    <ul class="mt-1 list-inside list-disc space-y-0.5">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <div x-data="{ tampil: true }" x-show="tampil" x-transition.opacity.duration.200ms
+                     class="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-800">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-1">
+                            <p class="font-semibold">Periksa kembali isian berikut:</p>
+                            <ul class="mt-1 list-inside list-disc space-y-0.5">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <button type="button" @click="tampil = false" aria-label="Tutup pemberitahuan"
+                                class="-my-1 -mr-1 shrink-0 rounded p-1 text-red-600/70 transition hover:bg-red-100 hover:text-red-900">
+                            <x-icon name="close" class="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             @endif
 

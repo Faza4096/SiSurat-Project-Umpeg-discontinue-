@@ -19,19 +19,21 @@ class DisposisiPolicy
         return $surat?->bolehDilihatOleh($user) ?? false;
     }
 
-    /** Staf dan admin selalu boleh; unit tujuan boleh untuk disposisinya. */
+    /** Peran yang melihat seluruh surat selalu boleh mengunduh kartu. */
     public function unduhKartu(User $user, Disposisi $disposisi): bool
     {
         return $disposisi->bolehDilihatOleh($user);
     }
 
+    /** Hanya pimpinan yang memberikan disposisi. */
     public function create(User $user): bool
     {
-        return $user->punyaRole('staf', 'admin');
+        return $user->bolehBeriDisposisi();
     }
 
+    /** Disposisi dibatalkan oleh Pimpinan; administrator untuk pemeliharaan data. */
     public function delete(User $user, Disposisi $disposisi): bool
     {
-        return $user->punyaRole('staf', 'admin');
+        return $user->punyaRole('pimpinan', 'admin');
     }
 }

@@ -11,43 +11,50 @@ use Tests\Concerns\BuatData;
 use Tests\TestCase;
 
 /**
- * Notifikasi yang tersimpan sebelum aturan penerima diperketat masih memuat
- * nomor/perihal surat rahasia di kotak masuk non-operator. Pembersih harus
- * menghapus baris lama itu tanpa menyentuh notifikasi lain.
+ * Notifikasi surat rahasia untuk penerima di luar unit tujuan disposisi masih
+ * memuat nomor/perihal rahasia. Pembersih menghapus baris itu, tetapi
+ * notifikasi milik staf unit tujuan tetap dipertahankan.
  */
 class PembersihNotifikasiRahasiaTest extends TestCase
 {
     use BuatData, RefreshDatabase;
 
-    public function test_notifikasi_lama_surat_rahasia_milik_non_operator_dihapus(): void
+    public function test_notifikasi_rahasia_untuk_penerima_tanpa_akses_dihapus(): void
     {
-        $staf = User::factory()->staf()->create();
+        $operator = User::factory()->petugasTu()->create();
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+        $penerima = User::factory()->staf()->unit($unit)->create();
+        $luar = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
-        $rahasiaMasuk = $this->suratMasuk($staf, ['sifat' => 'rahasia']);
-        $biasaMasuk = $this->suratMasuk($staf);
-        $rahasiaKeluar = $this->suratKeluar($staf, ['sifat' => 'rahasia']);
+        $rahasiaMasuk = $this->suratMasuk($operator, ['sifat' => 'rahasia']);
+        $biasaMasuk = $this->suratMasuk($operator);
+        $rahasiaKeluar = $this->suratKeluar($operator, ['sifat' => 'rahasia']);
 
-        $notifRahasiaMasuk = $this->notifikasi($pegawai, route('surat-masuk.show', $rahasiaMasuk));
-        $notifBiasa = $this->notifikasi($pegawai, route('surat-masuk.show', $biasaMasuk));
-        $notifRahasiaKeluar = $this->notifikasi($pegawai, route('surat-keluar.show', $rahasiaKeluar));
-        $notifStaf = $this->notifikasi($staf, route('surat-masuk.show', $rahasiaMasuk));
+        // Disposisi ditujukan ke UMPEG, jadi staf UMPEG berhak membuka suratnya.
+        $this->disposisi($rahasiaMasuk, $operator, [$unit]);
+
+        $notifLuar = $this->notifikasi($luar, route('surat-masuk.show', $rahasiaMasuk));
+        $notifRahasiaKeluar = $this->notifikasi($luar, route('surat-keluar.show', $rahasiaKeluar));
+        $notifBiasaLuar = $this->notifikasi($luar, route('surat-masuk.show', $biasaMasuk));
+        $notifPenerima = $this->notifikasi($penerima, route('surat-masuk.show', $rahasiaMasuk));
+        $notifOperator = $this->notifikasi($operator, route('surat-masuk.show', $rahasiaMasuk));
 
         $dihapus = app(PembersihNotifikasiRahasia::class)->jalankan();
 
         $this->assertSame(2, $dihapus);
-        $this->assertDatabaseMissing('notifications', ['id' => $notifRahasiaMasuk]);
+        $this->assertDatabaseMissing('notifications', ['id' => $notifLuar]);
         $this->assertDatabaseMissing('notifications', ['id' => $notifRahasiaKeluar]);
-        // Surat biasa dan notifikasi milik operator tidak ikut terhapus.
-        $this->assertDatabaseHas('notifications', ['id' => $notifBiasa]);
-        $this->assertDatabaseHas('notifications', ['id' => $notifStaf]);
+
+        // Surat biasa, staf unit tujuan, dan operator tidak ikut terhapus.
+        $this->assertDatabaseHas('notifications', ['id' => $notifBiasaLuar]);
+        $this->assertDatabaseHas('notifications', ['id' => $notifPenerima]);
+        $this->assertDatabaseHas('notifications', ['id' => $notifOperator]);
     }
 
     public function test_notifikasi_tanpa_tautan_surat_tidak_ikut_terhapus(): void
     {
         $unit = $this->unit('UMPEG');
-        $pegawai = User::factory()->role('pegawai')->unit($unit)->create();
+        $pegawai = User::factory()->staf()->unit($unit)->create();
 
         $id = (string) Str::uuid();
         DB::table('notifications')->insert([

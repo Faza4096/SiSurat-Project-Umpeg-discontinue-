@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         Password::defaults(fn () => Password::min(10)->letters()->numbers());
 
         // Identitas instansi dibaca dari satu tempat, yaitu menu Pengaturan Instansi.
-        View::composer(['layouts.sisurat', 'layouts.guest', 'laporan.pdf'], function ($view) {
+        View::composer(['layouts.sisurat', 'layouts.guest', 'laporan.pdf', 'arsip.pdf'], function ($view) {
             $view->with('identitas', $this->identitasInstansi());
         });
 

@@ -10,8 +10,15 @@
     }
 
     body {
-        @apply bg-slate-100 font-sans text-[14.5px] leading-relaxed text-slate-700 antialiased;
+        @apply font-sans text-[14.5px] leading-relaxed text-slate-700 antialiased;
         font-feature-settings: "kern" 1, "liga" 1;
+        /* Dasar terang dengan sapuan telaga dan emas yang sangat tipis,
+           supaya halaman tidak terasa abu-abu dan datar. */
+        background-color: #f3f7f5;
+        background-image:
+            radial-gradient(1100px 420px at 6% -14%, rgba(67, 168, 151, 0.14), transparent 62%),
+            radial-gradient(880px 360px at 100% -10%, rgba(230, 174, 56, 0.12), transparent 58%);
+        background-attachment: fixed;
     }
 
     h1,
@@ -22,6 +29,12 @@
 
     [x-cloak] {
         display: none !important;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        html {
+            scroll-behavior: smooth;
+        }
     }
 
     ::selection {
@@ -38,6 +51,25 @@
 @layer components {
     .gov-card {
         @apply min-w-0 rounded-lg border border-slate-200 bg-white shadow-card;
+        transition: box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .gov-card:hover {
+        @apply border-gov-200 shadow-gov;
+    }
+
+    /* Pita warna tipis di tepi atas kartu utama agar halaman punya aksen. */
+    .gov-card-accent {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .gov-card-accent::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 3px;
+        background: linear-gradient(90deg, theme('colors.gov.700') 0%, theme('colors.gov.400') 45%, theme('colors.gold.400') 100%);
     }
 
     .gov-card-head {
@@ -61,15 +93,30 @@
     }
 
     .gov-btn {
-        @apply inline-flex items-center justify-center gap-2 rounded-md bg-gov-700 px-3.5 py-2 text-[13px] font-semibold text-white shadow-sm transition hover:bg-gov-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gov-500 focus-visible:ring-offset-2 disabled:opacity-60;
+        @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-md bg-gradient-to-b from-gov-600 to-gov-800 px-3.5 py-2 text-[13px] font-semibold text-white shadow-sm transition hover:from-gov-700 hover:to-gov-900 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-gov-500 focus-visible:ring-offset-2 disabled:opacity-60;
+    }
+
+    /* Kilau tipis melintas saat tombol disorot. */
+    .gov-btn::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.18) 50%, transparent 65%);
+        transform: translateX(-130%);
+        transition: transform 0.6s ease;
+        pointer-events: none;
+    }
+
+    .gov-btn:hover::after {
+        transform: translateX(130%);
     }
 
     .gov-btn-outline {
-        @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-[13px] font-semibold text-slate-700 transition hover:border-gov-300 hover:bg-gov-50 hover:text-gov-800;
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-[13px] font-semibold text-slate-700 transition hover:border-gov-300 hover:bg-gov-50 hover:text-gov-800 active:scale-[0.98];
     }
 
     .gov-btn-danger {
-        @apply inline-flex items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-700 transition hover:bg-red-100;
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-700 transition hover:bg-red-100 active:scale-[0.98];
     }
 
     .gov-link {
@@ -77,17 +124,56 @@
     }
 
     .gov-th {
-        @apply whitespace-nowrap bg-slate-50/80 px-4 py-2.5 text-left text-[10.5px] font-bold uppercase tracking-[0.12em] text-slate-500;
+        @apply whitespace-nowrap bg-slate-50/80 px-4 py-2.5 text-left font-display text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500;
     }
 
     .gov-td {
         @apply px-4 py-3 align-top text-[13.5px] text-slate-700;
     }
 
-    .gov-table {
+    /* Tabel standar: lebar penuh, kolom rata kiri, huruf 13.5px. Varian
+       .gov-table-w* membawa gaya dasar yang sama sekaligus batas lebar minimum,
+       jadi satu kelas sudah cukup di view dan batasnya tidak perlu ditulis ulang. */
+    :is(.gov-table, [class*='gov-table-w']) {
         @apply w-full border-collapse text-left text-[13.5px];
         /* Tanpa ini label sr-only lolos dari wadah gulir dan melebarkan halaman. */
         position: relative;
+    }
+
+    .gov-table-w560 {
+        min-width: 560px;
+    }
+
+    .gov-table-w620 {
+        min-width: 620px;
+    }
+
+    .gov-table-w760 {
+        min-width: 760px;
+    }
+
+    .gov-table-w820 {
+        min-width: 820px;
+    }
+
+    .gov-table-w860 {
+        min-width: 860px;
+    }
+
+    .gov-table-w880 {
+        min-width: 880px;
+    }
+
+    .gov-table-w900 {
+        min-width: 900px;
+    }
+
+    .gov-table-w980 {
+        min-width: 980px;
+    }
+
+    .gov-table-w1040 {
+        min-width: 1040px;
     }
 
     /* Cegah isi panjang (select, tabel, teks) mendorong lebar halaman. */
@@ -97,16 +183,16 @@
         min-width: 0;
     }
 
-    .gov-table tbody tr {
+    :is(.gov-table, [class*='gov-table-w']) tbody tr {
         @apply transition-colors;
     }
 
-    .gov-table tbody tr:hover {
+    :is(.gov-table, [class*='gov-table-w']) tbody tr:hover {
         @apply bg-gov-50/40;
     }
 
     .gov-eyebrow {
-        @apply text-[10.5px] font-bold uppercase tracking-[0.16em] text-slate-500;
+        @apply font-display text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-500;
     }
 
     /* Garis ganda tebal-tipis mengikuti kop naskah dinas. */
@@ -123,15 +209,23 @@
     }
 
     .gov-page-title {
-        @apply font-serif text-[26px] font-semibold leading-tight tracking-[-0.01em] text-gov-900;
+        @apply font-display text-[26px] font-bold leading-tight tracking-[-0.025em] text-gov-900;
     }
 
     .gov-section-title {
-        @apply font-serif text-[17px] font-semibold leading-snug text-gov-900;
+        @apply font-display text-[17px] font-semibold leading-snug tracking-[-0.015em] text-gov-900;
     }
 
     .gov-nav {
-        @apply flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium text-gov-100 transition hover:bg-white/10 hover:text-white;
+        @apply flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-semibold tracking-[0.005em] text-gov-100 transition hover:translate-x-0.5 hover:bg-white/10 hover:text-white;
+    }
+
+    .gov-nav svg {
+        transition: transform 0.2s ease;
+    }
+
+    .gov-nav:hover svg {
+        transform: scale(1.06);
     }
 
     /* Scrollbar tipis tanpa track putih, agar latar navy tidak terpotong. */
@@ -158,12 +252,126 @@
         box-shadow: inset 2px 0 0 theme('colors.gold.400');
     }
 
+    /* Sapuan emas lembut di kepala sidebar, pengganti navy datar. */
+    .gov-sidebar {
+        background-image:
+            radial-gradient(120% 55% at 88% -6%, rgba(240, 199, 101, 0.20), transparent 62%),
+            linear-gradient(180deg, #082522 0%, #0f3a35 58%, #155750 100%);
+    }
+
     .gov-badge {
         @apply inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em];
     }
 
+    /* Satu warna mewakili satu arti, dipakai badge dan legenda halaman. */
+    .tone-info {
+        @apply bg-gov-50 text-gov-800 ring-gov-200;
+    }
+
+    .tone-wait {
+        @apply bg-gold-50 text-gold-800 ring-gold-300;
+    }
+
+    .tone-done {
+        @apply bg-leaf-50 text-leaf-800 ring-leaf-200;
+    }
+
+    .tone-alert {
+        @apply bg-red-50 text-red-700 ring-red-200;
+    }
+
+    .tone-urgent {
+        @apply bg-orange-50 text-orange-800 ring-orange-200;
+    }
+
+    .tone-muted {
+        @apply bg-slate-100 text-slate-600 ring-slate-200;
+    }
+
     .gov-stat {
-        @apply font-serif text-[24px] font-semibold leading-none tabular-nums text-gov-900;
+        @apply font-display text-[24px] font-bold leading-none tracking-[-0.02em] tabular-nums text-gov-900;
+    }
+
+    /* Gerak masuk dipakai bersama agar halaman terasa hidup tanpa berlebihan. */
+    .anim-rise {
+        animation: sisurat-rise 0.5s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+    }
+
+    .anim-stagger > * {
+        animation: sisurat-rise 0.45s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+    }
+
+    .anim-stagger > *:nth-child(2) {
+        animation-delay: 60ms;
+    }
+
+    .anim-stagger > *:nth-child(3) {
+        animation-delay: 110ms;
+    }
+
+    .anim-stagger > *:nth-child(4) {
+        animation-delay: 160ms;
+    }
+
+    .anim-stagger > *:nth-child(5) {
+        animation-delay: 210ms;
+    }
+
+    .anim-stagger > *:nth-child(n + 6) {
+        animation-delay: 250ms;
+    }
+
+    .anim-grow {
+        transform-origin: bottom;
+        animation: sisurat-grow 0.6s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+    }
+
+    .anim-rule {
+        animation: sisurat-rule 0.9s cubic-bezier(0.22, 0.8, 0.24, 1) both;
+    }
+}
+
+@keyframes sisurat-rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes sisurat-grow {
+    from {
+        transform: scaleY(0.04);
+    }
+
+    to {
+        transform: scaleY(1);
+    }
+}
+
+@keyframes sisurat-rule {
+    from {
+        width: 0;
+        opacity: 0.2;
+    }
+
+    to {
+        width: 7rem;
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 

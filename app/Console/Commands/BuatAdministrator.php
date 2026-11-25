@@ -78,7 +78,7 @@ class BuatAdministrator extends Command
         ]);
 
         $this->info("Administrator {$user->email} dibuat. Masuk lewat halaman login dengan sandi yang baru saja diisi.");
-        $this->line('Akun staf berikutnya dibuat administrator dari menu Pengguna.');
+        $this->line('Akun Petugas TU, Pimpinan, dan Staf/Umpeg berikutnya dibuat administrator dari menu Pengguna.');
 
         return self::SUCCESS;
     }

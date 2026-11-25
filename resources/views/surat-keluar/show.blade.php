@@ -41,7 +41,7 @@
             <div class="border-b border-slate-100 bg-gradient-to-r from-gov-900 to-gov-700 px-6 py-6 text-white">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-300">Surat Keluar</p>
                 <p class="mt-1 font-mono text-xl font-bold">{{ $s->no_surat }}</p>
-                <h2 class="mt-2 font-serif text-lg font-bold leading-snug">{{ $s->hal }}</h2>
+                <h2 class="mt-2 font-display text-lg font-bold leading-snug tracking-[-0.02em]">{{ $s->hal }}</h2>
             </div>
 
             <div class="grid gap-2 border-b border-slate-100 px-6 py-4 sm:grid-cols-5">
@@ -116,7 +116,7 @@
         </div>
 
         <div class="space-y-4">
-            @if ($s->status === 'menunggu_ttd' && auth()->user()->punyaRole('staf', 'admin'))
+            @if ($s->status === 'menunggu_ttd' && auth()->user()->bolehBeriDisposisi())
                 <div class="gov-card border-gold-200 p-5">
                     <p class="gov-card-title">Persetujuan Surat</p>
                     <p class="mt-1 text-xs leading-relaxed text-slate-500">
@@ -214,6 +214,10 @@
                         <div class="flex justify-between gap-2"><dt class="text-slate-500">Penerima</dt><dd class="text-right text-slate-700">{{ $s->penerima ?? '-' }}</dd></div>
                         <div class="flex justify-between gap-2"><dt class="text-slate-500">Metode</dt><dd class="text-slate-700">{{ ucfirst($s->metode_kirim ?? '-') }}</dd></div>
                         <div class="flex justify-between gap-2"><dt class="text-slate-500">Bukti</dt><dd class="font-mono text-slate-700">{{ $s->no_bukti_kirim ?? '-' }}</dd></div>
+                        @if ($s->status === 'diarsipkan')
+                            <div class="flex justify-between gap-2"><dt class="text-slate-500">Diarsipkan</dt><dd class="text-slate-700">{{ $s->diarsipkan_pada?->translatedFormat('d M Y H:i') ?? '-' }}</dd></div>
+                            <div class="flex justify-between gap-2"><dt class="text-slate-500">Petugas arsip</dt><dd class="text-slate-700">{{ $s->pengarsip?->name ?? '-' }}</dd></div>
+                        @endif
                     </dl>
                     @can('arsipkan', $s)
                         <form method="POST" action="{{ route('surat-keluar.arsipkan', $s) }}" class="mt-3">

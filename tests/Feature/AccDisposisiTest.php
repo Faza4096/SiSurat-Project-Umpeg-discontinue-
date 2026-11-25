@@ -25,8 +25,8 @@ class AccDisposisiTest extends TestCase
 
     public function test_pimpinan_acc_membuat_disposisi_dan_pdf_kartu(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $penerima = User::factory()->create(['unit_id' => $unit->id]);
         $surat = $this->suratMasuk($tu);
@@ -55,9 +55,9 @@ class AccDisposisiTest extends TestCase
         Notification::assertSentTo($penerima, DisposisiBaru::class);
     }
 
-    public function test_administrator_dapat_meng_acc_surat_masuk(): void
+    public function test_administrator_tidak_dapat_meng_acc_surat_masuk(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $admin = User::factory()->admin()->create();
         $unit = $this->unit('UMPEG');
         $surat = $this->suratMasuk($tu);
@@ -69,16 +69,16 @@ class AccDisposisiTest extends TestCase
                 'instruksi' => 'Tindak lanjuti dan laporkan.',
                 'tujuan' => [$unit->id],
             ])
-            ->assertRedirect(route('surat-masuk.show', $surat));
+            ->assertForbidden();
 
-        $this->assertSame('didisposisi', $surat->fresh()->status);
-        $this->assertSame($admin->id, Disposisi::where('surat_masuk_id', $surat->id)->firstOrFail()->dibuat_oleh);
+        $this->assertSame('diterima', $surat->fresh()->status);
+        $this->assertSame(0, Disposisi::where('surat_masuk_id', $surat->id)->count());
     }
 
     public function test_form_acc_terisi_data_surat(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $surat = $this->suratMasuk($tu, ['perihal' => 'Undangan Rapat Koordinasi']);
 
         $this->actingAs($pimpinan)
@@ -89,31 +89,28 @@ class AccDisposisiTest extends TestCase
             ->assertSee($this->instansi()->nama);
     }
 
-    public function test_staf_dan_admin_boleh_acc(): void
+    public function test_pimpinan_boleh_acc(): void
     {
-        $staf = User::factory()->staf()->create();
-        $admin = User::factory()->admin()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
+        $pencatat = User::factory()->petugasTu()->create();
+        $surat = $this->suratMasuk($pencatat);
 
-        foreach ([$staf, $admin] as $user) {
-            $surat = $this->suratMasuk($staf);
+        $this->actingAs($pimpinan)->get(route('disposisi.acc.form', $surat))->assertOk();
+        $this->actingAs($pimpinan)->post(route('disposisi.acc', $surat), [
+            'indeks' => '400.7',
+            'tgl_penyelesaian' => now()->addDays(2)->toDateString(),
+            'instruksi' => 'Tindak lanjuti.',
+            'tujuan' => [$unit->id],
+        ])->assertSessionHasNoErrors();
 
-            $this->actingAs($user)->get(route('disposisi.acc.form', $surat))->assertOk();
-            $this->actingAs($user)->post(route('disposisi.acc', $surat), [
-                'indeks' => '400.7',
-                'tgl_penyelesaian' => now()->addDays(2)->toDateString(),
-                'instruksi' => 'Tindak lanjuti.',
-                'tujuan' => [$unit->id],
-            ])->assertSessionHasNoErrors();
-
-            $this->assertSame('didisposisi', $surat->fresh()->status);
-        }
+        $this->assertSame('didisposisi', $surat->fresh()->status);
     }
 
     public function test_kartu_pdf_dapat_diunduh_operator_dan_unit_tujuan(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $surat = $this->suratMasuk($tu);
         $disposisi = $this->disposisi($surat, $pimpinan, [$unit]);
@@ -131,8 +128,8 @@ class AccDisposisiTest extends TestCase
 
     public function test_nama_berkas_pdf_kartu_mengikuti_isi_lembar(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit();
         $surat = $this->suratMasuk($tu, ['perihal' => 'Undangan Rapat Koordinasi']);
         $disposisi = $this->disposisi($surat, $pimpinan, [$unit]);
@@ -154,8 +151,8 @@ class AccDisposisiTest extends TestCase
 
     public function test_cetak_massal_menghasilkan_satu_pdf(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit();
 
         $satu = $this->disposisi($this->suratMasuk($tu), $pimpinan, [$unit]);
@@ -176,8 +173,8 @@ class AccDisposisiTest extends TestCase
 
     public function test_notifikasi_disposisi_melampirkan_pdf_kartu(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit();
         $surat = $this->suratMasuk($tu);
 
@@ -200,8 +197,8 @@ class AccDisposisiTest extends TestCase
     public function test_pimpinan_acc_surat_keluar_membuat_kartu_untuk_tu(): void
     {
         $unitTu = $this->unit('TU');
-        $tu = User::factory()->staf()->create(['unit_id' => $unitTu->id]);
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create(['unit_id' => $unitTu->id]);
+        $pimpinan = User::factory()->pimpinan()->create();
         $surat = $this->suratKeluar($tu, ['status' => 'menunggu_ttd']);
 
         $this->actingAs($pimpinan)->post(route('surat-keluar.acc', $surat))
@@ -224,8 +221,8 @@ class AccDisposisiTest extends TestCase
 
     public function test_surat_keluar_yang_sudah_disetujui_tidak_bisa_di_acc_lagi(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $surat = $this->suratKeluar($tu, ['status' => 'disetujui']);
 
         $this->actingAs($pimpinan)->post(route('surat-keluar.acc', $surat))->assertForbidden();

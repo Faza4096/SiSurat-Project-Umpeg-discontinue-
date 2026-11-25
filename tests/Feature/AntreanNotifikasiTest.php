@@ -21,8 +21,8 @@ class AntreanNotifikasiTest extends TestCase
     {
         config(['queue.default' => 'database']);
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
 

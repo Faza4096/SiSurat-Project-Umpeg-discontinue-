@@ -47,7 +47,7 @@ class DisposisiController extends Controller
     }
 
     /**
-     * Staf meng-ACC surat masuk: disposisi terbentuk, status surat menjadi
+     * Pimpinan meng-ACC surat masuk: disposisi terbentuk, status surat menjadi
      * didisposisi, dan PDF kartu langsung dibuat serta dilampirkan ke notifikasi.
      */
     public function acc(Request $request, SuratMasuk $suratMasuk)
@@ -147,7 +147,7 @@ class DisposisiController extends Controller
     }
 
     /**
-     * Perbarui tindak lanjut. Hanya unit tujuan (atau admin) yang boleh.
+     * Perbarui tindak lanjut. Hanya unit tujuan atau Petugas TU yang boleh.
      * Kartu PDF diperbarui otomatis setelah perubahan.
      */
     public function ubahStatus(Request $request, DisposisiTujuan $tujuan)
@@ -280,10 +280,10 @@ class DisposisiController extends Controller
         return $disposisi;
     }
 
-    /** Perubahan oleh operator dikabarkan ke pengguna unit tujuan. */
+    /** Perubahan oleh Petugas TU dikabarkan ke pengguna unit tujuan. */
     private function kabariUnitTujuan(DisposisiTujuan $tujuan, string $status, User $oleh): void
     {
-        if (! $oleh->punyaRole('staf')) {
+        if (! $oleh->punyaRole('petugas_tu')) {
             return;
         }
 
@@ -339,7 +339,7 @@ class DisposisiController extends Controller
      */
     private function menungguDisposisi(User $user): array
     {
-        if (! $user->punyaRole('admin', 'staf')) {
+        if (! $user->bolehLihatSemuaSurat()) {
             return ['masuk' => collect(), 'keluar' => collect(), 'totalMasuk' => 0, 'totalKeluar' => 0];
         }
 
@@ -357,9 +357,8 @@ class DisposisiController extends Controller
     private function query(Request $request): Builder
     {
         return Disposisi::with('suratMasuk.instansi', 'suratKeluar.unit', 'pembuat', 'tujuan.unit', 'tujuan.penyelesai')
-            ->when(! $request->user()->punyaRole('admin', 'staf'), function ($q) use ($request) {
-                $q->whereHas('tujuan', fn ($t) => $t->where('unit_id', $request->user()->unit_id))
-                    ->bukanRahasia();
+            ->when(! $request->user()->bolehLihatSemuaSurat(), function ($q) use ($request) {
+                $q->whereHas('tujuan', fn ($t) => $t->where('unit_id', $request->user()->unit_id));
             })
             ->when($request->query('cari'), function ($q, $cari) {
                 $q->where(fn ($w) => $w->where('instruksi', 'like', "%{$cari}%")

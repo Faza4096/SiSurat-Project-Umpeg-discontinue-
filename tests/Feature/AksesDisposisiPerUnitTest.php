@@ -7,15 +7,15 @@ use App\Models\DisposisiTujuan;
 use App\Models\SuratKeluar;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\BuatData;
 use Tests\TestCase;
 
 /**
- * Akun non-operator (tanpa peran staf/admin) yang unitnya menjadi tujuan
- * disposisi harus bisa membuka kartu disposisi dan bukti tindak lanjutnya,
- * sama seperti yang sudah disiapkan query daftar disposisi dan
- * DisposisiPolicy::unduhKartu.
+ * Staf/Umpeg di unit tujuan boleh membuka surat induk, kartu disposisi, dan
+ * bukti tindak lanjutnya, sedangkan staf unit lain ditolak. Sifat rahasia
+ * membatasi antarunit, bukan memblokir staf unit tujuan.
  */
 class AksesDisposisiPerUnitTest extends TestCase
 {
@@ -39,9 +39,9 @@ class AksesDisposisiPerUnitTest extends TestCase
 
         $unitTujuan = $this->unit('UMPEG');
 
-        $this->operator = User::factory()->staf()->create();
-        $this->pegawaiTujuan = User::factory()->role('pegawai')->unit($unitTujuan)->create();
-        $this->pegawaiUnitLain = User::factory()->role('pegawai')->unit($this->unit('ULA'))->create();
+        $this->operator = User::factory()->petugasTu()->create();
+        $this->pegawaiTujuan = User::factory()->staf()->unit($unitTujuan)->create();
+        $this->pegawaiUnitLain = User::factory()->staf()->unit($this->unit('ULA'))->create();
 
         $this->disposisi = $this->disposisi($this->suratMasuk($this->operator), $this->operator, [$unitTujuan]);
         $this->tujuan = $this->disposisi->tujuan()->first();
@@ -115,24 +115,48 @@ class AksesDisposisiPerUnitTest extends TestCase
     public function test_pegawai_unit_pembuat_surat_keluar_melihat_suratnya(): void
     {
         $suratKeluar = $this->suratKeluar($this->operator);
-        $pegawaiTu = User::factory()->role('pegawai')->unit($this->unit('TU'))->create();
+        $pegawaiTu = User::factory()->staf()->unit($this->unit('TU'))->create();
 
         $this->actingAs($pegawaiTu)
             ->get(route('surat-keluar.show', $suratKeluar))
             ->assertOk();
     }
 
-    public function test_surat_masuk_rahasia_tertutup_bagi_akun_non_operator(): void
+    public function test_surat_masuk_rahasia_terbuka_bagi_staf_unit_tujuan(): void
     {
-        $rahasia = $this->suratMasuk($this->operator, ['sifat' => 'rahasia']);
+        $rahasia = $this->suratMasuk($this->operator, [
+            'sifat' => 'rahasia',
+            'perihal' => 'Perihal sangat rahasia',
+        ]);
         $this->disposisi($rahasia, $this->operator, [$this->unit('UMPEG')]);
 
         $this->actingAs($this->pegawaiTujuan)
             ->get(route('surat-masuk.show', $rahasia))
-            ->assertForbidden();
+            ->assertOk();
+
+        $this->actingAs($this->pegawaiTujuan)
+            ->get(route('surat-masuk.index'))
+            ->assertSee('Perihal sangat rahasia');
     }
 
-    public function test_surat_masuk_rahasia_tertutup_di_semua_jalur_disposisi(): void
+    public function test_surat_masuk_rahasia_tertutup_bagi_staf_unit_lain(): void
+    {
+        $rahasia = $this->suratMasuk($this->operator, [
+            'sifat' => 'rahasia',
+            'perihal' => 'Perihal sangat rahasia',
+        ]);
+        $this->disposisi($rahasia, $this->operator, [$this->unit('UMPEG')]);
+
+        $this->actingAs($this->pegawaiUnitLain)
+            ->get(route('surat-masuk.show', $rahasia))
+            ->assertForbidden();
+
+        $this->actingAs($this->pegawaiUnitLain)
+            ->get(route('surat-masuk.index'))
+            ->assertDontSee('Perihal sangat rahasia');
+    }
+
+    public function test_semua_jalur_disposisi_surat_rahasia_terbuka_bagi_unit_tujuan(): void
     {
         $rahasia = $this->suratMasuk($this->operator, [
             'sifat' => 'rahasia',
@@ -149,21 +173,40 @@ class AksesDisposisiPerUnitTest extends TestCase
 
         $this->actingAs($this->pegawaiTujuan);
 
+        $this->get(route('disposisi.kartu', $disposisi))->assertOk();
+        $this->get(route('disposisi.pdf', $disposisi))->assertOk();
+        $this->get(route('disposisi.cetak', ['ids' => [$disposisi->id]]))->assertOk()->assertHeader('content-type', 'application/pdf');
+        $this->get(route('tujuan.bukti.unduh', $tujuan))->assertOk();
+
+        $this->patch(route('tujuan.status', $tujuan), ['status' => 'diproses'])->assertSessionHasNoErrors();
+        $this->post(route('tujuan.bukti', $tujuan), [
+            'bukti' => UploadedFile::fake()->create('tindak-lanjut.pdf', 120, 'application/pdf'),
+        ])->assertSessionHasNoErrors();
+        $this->delete(route('tujuan.bukti.hapus', $tujuan))->assertSessionHasNoErrors();
+
+        $this->assertSame('diproses', $tujuan->fresh()->status_tindak_lanjut);
+    }
+
+    public function test_jalur_disposisi_surat_rahasia_tertutup_bagi_unit_lain(): void
+    {
+        $rahasia = $this->suratMasuk($this->operator, ['sifat' => 'rahasia']);
+        $disposisi = $this->disposisi($rahasia, $this->operator, [$this->unit('UMPEG')]);
+        $tujuan = $disposisi->tujuan()->first();
+
+        $this->actingAs($this->pegawaiUnitLain);
+
         $this->get(route('disposisi.kartu', $disposisi))->assertForbidden();
         $this->get(route('disposisi.pdf', $disposisi))->assertForbidden();
         $this->get(route('disposisi.cetak', ['ids' => [$disposisi->id]]))->assertForbidden();
         $this->get(route('tujuan.bukti.unduh', $tujuan))->assertForbidden();
-
         $this->patch(route('tujuan.status', $tujuan), ['status' => 'diproses'])->assertForbidden();
-        $this->post(route('tujuan.bukti', $tujuan), ['catatan' => 'uji'])->assertForbidden();
-        $this->delete(route('tujuan.bukti.hapus', $tujuan))->assertForbidden();
 
         $this->get(route('disposisi.index'))
             ->assertOk()
-            ->assertDontSee('Perihal sangat rahasia');
+            ->assertDontSee($rahasia->perihal);
     }
 
-    public function test_surat_keluar_rahasia_tertutup_bagi_unit_tujuan_disposisi(): void
+    public function test_surat_keluar_rahasia_terbuka_bagi_staf_unit_pembuat(): void
     {
         $rahasia = $this->suratKeluar($this->operator, ['sifat' => 'rahasia']);
         $disposisi = Disposisi::create([
@@ -172,18 +215,22 @@ class AksesDisposisiPerUnitTest extends TestCase
             'instruksi' => 'Tindak lanjuti.',
             'tgl_disposisi' => now(),
         ]);
-        $disposisi->tujuan()->create(['unit_id' => $this->unit('UMPEG')->id]);
 
-        $this->actingAs($this->pegawaiTujuan)
-            ->get(route('disposisi.kartu', $disposisi))
-            ->assertForbidden();
+        Storage::disk('local')->put('kartu-disposisi/keluar-rahasia.pdf', '%PDF-1.4 uji');
+        $disposisi->update(['kartu_path' => 'kartu-disposisi/keluar-rahasia.pdf', 'kartu_nama' => 'keluar-rahasia.pdf']);
 
-        $this->actingAs($this->pegawaiTujuan)
-            ->get(route('disposisi.pdf', $disposisi))
+        $pegawaiTu = User::factory()->staf()->unit($this->unit('TU'))->create();
+
+        $this->actingAs($pegawaiTu)
+            ->get(route('surat-keluar.show', $rahasia))
+            ->assertOk();
+
+        $this->actingAs($this->pegawaiUnitLain)
+            ->get(route('surat-keluar.show', $rahasia))
             ->assertForbidden();
     }
 
-    public function test_staf_tetap_membuka_kartu_disposisi_surat_rahasia(): void
+    public function test_petugas_tu_tetap_membuka_kartu_disposisi_surat_rahasia(): void
     {
         $rahasia = $this->suratMasuk($this->operator, ['sifat' => 'rahasia']);
         $disposisi = $this->disposisi($rahasia, $this->operator, [$this->unit('UMPEG')]);

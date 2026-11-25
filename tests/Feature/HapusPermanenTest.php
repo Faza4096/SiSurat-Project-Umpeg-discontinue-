@@ -22,15 +22,15 @@ class HapusPermanenTest extends TestCase
         Storage::fake('local');
 
         $admin = User::factory()->admin()->create();
-        $staf = User::factory()->staf()->create();
-        $surat = $this->suratMasuk($staf);
+        $tu = User::factory()->petugasTu()->create();
+        $surat = $this->suratMasuk($tu);
 
         Storage::disk('local')->put('lampiran/masuk/scan.pdf', 'isi');
         $lampiran = $surat->lampiran()->create([
             'nama_file' => 'scan.pdf',
             'path' => 'lampiran/masuk/scan.pdf',
             'jenis' => 'scan',
-            'diunggah_oleh' => $staf->id,
+            'diunggah_oleh' => $tu->id,
         ]);
 
         $this->actingAs($admin)
@@ -68,20 +68,20 @@ class HapusPermanenTest extends TestCase
         Storage::disk('local')->assertMissing('lampiran/masuk/scan.pdf');
     }
 
-    public function test_staf_tidak_boleh_menghapus_permanen_surat_masuk(): void
+    public function test_petugas_tu_tidak_boleh_menghapus_permanen_surat_masuk(): void
     {
-        $staf = User::factory()->staf()->create();
-        $surat = $this->suratMasuk($staf);
+        $tu = User::factory()->petugasTu()->create();
+        $surat = $this->suratMasuk($tu);
 
-        $this->actingAs($staf)
+        $this->actingAs($tu)
             ->get(route('surat-masuk.show', $surat))
             ->assertDontSee('Zona berbahaya');
 
-        $this->actingAs($staf)
+        $this->actingAs($tu)
             ->get(route('surat-masuk.hapus-permanen.form', $surat))
             ->assertForbidden();
 
-        $this->actingAs($staf)
+        $this->actingAs($tu)
             ->delete(route('surat-masuk.hapus-permanen', $surat), ['konfirmasi' => $surat->no_agenda])
             ->assertForbidden();
 
@@ -153,12 +153,12 @@ class HapusPermanenTest extends TestCase
         $this->assertNull(SuratKeluar::withTrashed()->find($surat->id));
     }
 
-    public function test_staf_tidak_boleh_menghapus_permanen_surat_keluar(): void
+    public function test_petugas_tu_tidak_boleh_menghapus_permanen_surat_keluar(): void
     {
-        $staf = User::factory()->staf()->create();
-        $surat = $this->suratKeluar($staf);
+        $tu = User::factory()->petugasTu()->create();
+        $surat = $this->suratKeluar($tu);
 
-        $this->actingAs($staf)
+        $this->actingAs($tu)
             ->delete(route('surat-keluar.hapus-permanen', $surat), ['konfirmasi' => $surat->no_surat])
             ->assertForbidden();
 

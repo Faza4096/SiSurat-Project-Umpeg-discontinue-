@@ -20,8 +20,8 @@ class AlurDisposisiTest extends TestCase
     {
         Notification::fake();
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
         $surat = $this->suratMasuk($tu);
@@ -37,7 +37,7 @@ class AlurDisposisiTest extends TestCase
         Notification::assertSentTo($staf, DisposisiBaru::class);
     }
 
-    public function test_staf_boleh_memberi_disposisi(): void
+    public function test_staf_tidak_boleh_memberi_disposisi(): void
     {
         $staf = User::factory()->staf()->create();
         $unit = $this->unit('UMPEG');
@@ -46,15 +46,15 @@ class AlurDisposisiTest extends TestCase
         $this->actingAs($staf)->post(route('disposisi.store', $surat), [
             'instruksi' => 'Tindak lanjuti.',
             'tujuan' => [$unit->id],
-        ])->assertSessionHasNoErrors();
+        ])->assertForbidden();
 
-        $this->assertSame('didisposisi', $surat->fresh()->status);
+        $this->assertSame('diterima', $surat->fresh()->status);
     }
 
     public function test_status_surat_tidak_menjadi_diproses_saat_semua_tujuan_masih_belum(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
 
@@ -88,25 +88,39 @@ class AlurDisposisiTest extends TestCase
         $this->assertSame($staf->id, $tujuan->fresh()->selesai_oleh);
     }
 
-    public function test_staf_boleh_mengubah_status_unit_lain(): void
+    public function test_petugas_tu_boleh_mengubah_status_unit_lain(): void
     {
-        $staf = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $unit = $this->unit('UMPEG');
 
-        $surat = $this->suratMasuk($staf);
-        $tujuan = $this->disposisi($surat, $staf, [$unit])->tujuan()->first();
+        $surat = $this->suratMasuk($tu);
+        $tujuan = $this->disposisi($surat, $tu, [$unit])->tujuan()->first();
 
-        $this->actingAs($staf)->patch(route('tujuan.status', $tujuan), ['status' => 'selesai'])
+        $this->actingAs($tu)->patch(route('tujuan.status', $tujuan), ['status' => 'selesai'])
             ->assertSessionHasNoErrors();
         $this->assertSame('selesai', $tujuan->fresh()->status_tindak_lanjut);
+    }
+
+    public function test_staf_unit_lain_tidak_boleh_mengubah_status(): void
+    {
+        $tu = User::factory()->petugasTu()->create();
+        $unit = $this->unit('UMPEG');
+        $asing = User::factory()->staf()->unit($this->unit('ULA'))->create();
+
+        $surat = $this->suratMasuk($tu);
+        $tujuan = $this->disposisi($surat, $tu, [$unit])->tujuan()->first();
+
+        $this->actingAs($asing)->patch(route('tujuan.status', $tujuan), ['status' => 'selesai'])
+            ->assertForbidden();
+        $this->assertSame('belum', $tujuan->fresh()->status_tindak_lanjut);
     }
 
     public function test_unit_tujuan_mengunggah_bukti_tindak_lanjut(): void
     {
         Storage::fake('local');
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $unit = $this->unit('UMPEG');
         $staf = User::factory()->create(['unit_id' => $unit->id]);
 
@@ -129,8 +143,8 @@ class AlurDisposisiTest extends TestCase
 
     public function test_surat_yang_sudah_didisposisi_tidak_dapat_dihapus(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $surat = $this->suratMasuk($tu);
         $this->disposisi($surat, $pimpinan, [$this->unit('UMPEG')]);
 
@@ -140,8 +154,8 @@ class AlurDisposisiTest extends TestCase
 
     public function test_tu_mengarsipkan_surat_yang_sudah_selesai(): void
     {
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $surat = $this->suratMasuk($tu, ['status' => 'selesai']);
 
         $this->actingAs($tu)->patch(route('surat-masuk.arsipkan', $surat), [
@@ -156,7 +170,7 @@ class AlurDisposisiTest extends TestCase
 
     public function test_surat_yang_belum_selesai_tidak_dapat_diarsipkan(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $surat = $this->suratMasuk($tu, ['status' => 'diproses']);
 
         $this->actingAs($tu)->patch(route('surat-masuk.arsipkan', $surat), [

@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Disposisi;
+use App\Models\SuratKeluar;
+use App\Models\SuratMasuk;
+use App\Models\User;
 use App\Notifications\DisposisiBaru;
 use App\Notifications\PengingatBatasWaktu;
 use App\Notifications\StatusTindakLanjut;
@@ -11,8 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Job notifikasi yang masuk antrean sebelum aturan penerima surat rahasia
- * diperketat masih memuat nomor/perihal rahasia untuk akun non-operator.
+ * Job notifikasi surat rahasia yang penerimanya tidak berhak membuka surat
+ * (di luar unit tujuan disposisi) masih memuat nomor/perihal rahasia.
  * Pembersih ini membatalkan job tersebut sebelum sempat dikirim, termasuk
  * job yang sudah gagal dan tersimpan di tabel failed_jobs.
  */
@@ -67,45 +69,32 @@ class PembersihAntreanRahasia
             return false;
         }
 
-        return $job instanceof SendQueuedNotifications
-            && $this->notifikasiRahasia($job->notification)
-            && collect($job->notifiables)->contains(fn ($penerima) => $this->nonOperator($penerima));
+        if (! $job instanceof SendQueuedNotifications) {
+            return false;
+        }
+
+        $surat = $this->suratRahasia($job->notification);
+
+        if (! $surat) {
+            return false;
+        }
+
+        return collect($job->notifiables)->contains(
+            fn ($penerima) => ! $surat->bolehDilihatOleh($penerima instanceof User ? $penerima : null)
+        );
     }
 
-    private function notifikasiRahasia(object $notifikasi): bool
+    private function suratRahasia(object $notifikasi): SuratMasuk|SuratKeluar|null
     {
-        $disposisiId = match (true) {
-            $notifikasi instanceof DisposisiBaru => $notifikasi->disposisi?->id,
+        $disposisi = match (true) {
+            $notifikasi instanceof DisposisiBaru => $notifikasi->disposisi,
             $notifikasi instanceof StatusTindakLanjut,
-            $notifikasi instanceof PengingatBatasWaktu => $notifikasi->tujuan?->disposisi_id,
+            $notifikasi instanceof PengingatBatasWaktu => $notifikasi->tujuan?->disposisi,
             default => null,
         };
 
-        if (! $disposisiId) {
-            return false;
-        }
+        $surat = $disposisi?->suratMasuk ?? $disposisi?->suratKeluar;
 
-        return DB::table('disposisi')
-            ->leftJoin('surat_masuk', 'surat_masuk.id', '=', 'disposisi.surat_masuk_id')
-            ->leftJoin('surat_keluar', 'surat_keluar.id', '=', 'disposisi.surat_keluar_id')
-            ->where('disposisi.id', $disposisiId)
-            ->where(fn ($q) => $q->where('surat_masuk.sifat', 'rahasia')
-                ->orWhere('surat_keluar.sifat', 'rahasia'))
-            ->exists();
-    }
-
-    private function nonOperator(object $penerima): bool
-    {
-        $id = $penerima->id ?? null;
-
-        if (! $id) {
-            return false;
-        }
-
-        return DB::table('users')
-            ->join('roles', 'roles.id', '=', 'users.role_id')
-            ->where('users.id', $id)
-            ->whereNotIn('roles.nama', Disposisi::PERAN_OPERATOR)
-            ->exists();
+        return $surat?->isRahasia() ? $surat : null;
     }
 }

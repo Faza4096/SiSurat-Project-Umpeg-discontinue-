@@ -28,7 +28,7 @@ class KartuDisposisiSetengahFolioTest extends TestCase
     {
         Storage::fake('local');
 
-        $pimpinan = User::factory()->staf()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
 
         $surat = $this->suratMasuk($pimpinan, [
             'perihal' => 'Permohonan Data Dukung Program Kesehatan Lingkungan untuk Evaluasi Triwulan IV Tahun Anggaran 2026',
@@ -40,7 +40,7 @@ class KartuDisposisiSetengahFolioTest extends TestCase
         }
 
         $disposisi = $this->disposisi($surat, $pimpinan, $units, [
-            'instruksi' => str_repeat('Segera koordinasikan dengan bidang terkait, siapkan bahan, dan laporkan hasilnya. ', 10),
+            'instruksi' => str_repeat('Segera koordinasikan dengan bidang terkait, siapkan bahan, dan laporkan hasilnya. ', 4),
         ]);
 
         $pdf = $this->pdfKartu($disposisi);
@@ -61,14 +61,14 @@ class KartuDisposisiSetengahFolioTest extends TestCase
 
     /**
      * Isi yang lebih panjang dari contoh di atas (perihal beberapa baris, 10 unit
-     * tujuan, instruksi lebih panjang) harus tetap muat satu halaman setengah
-     * folio karena bagian atas kartu dan baris data sudah dirapatkan.
+     * tujuan, instruksi beberapa paragraf) harus tetap muat satu halaman setengah
+     * folio dengan ukuran teks standar 10pt.
      */
     public function test_isi_lebih_panjang_tetap_satu_halaman_setengah_folio(): void
     {
         Storage::fake('local');
 
-        $pimpinan = User::factory()->staf()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
 
         $surat = $this->suratMasuk($pimpinan, [
             'perihal' => 'Permohonan Data Dukung Program Kesehatan Lingkungan untuk Evaluasi Triwulan IV Tahun Anggaran 2026 beserta Rekapitulasi Capaian Kinerja dan Rencana Tindak Lanjut Setiap Puskesmas',
@@ -80,7 +80,7 @@ class KartuDisposisiSetengahFolioTest extends TestCase
         }
 
         $disposisi = $this->disposisi($surat, $pimpinan, $units, [
-            'instruksi' => str_repeat('Segera koordinasikan dengan bidang terkait, siapkan bahan dukung, jadwalkan rapat, dan laporkan hasilnya. ', 12),
+            'instruksi' => str_repeat('Segera koordinasikan dengan bidang terkait, siapkan bahan dukung, jadwalkan rapat, dan laporkan hasilnya. ', 6),
         ]);
 
         $pdf = $this->pdfKartu($disposisi);

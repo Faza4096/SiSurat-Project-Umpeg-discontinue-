@@ -32,7 +32,7 @@
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div class="min-w-0">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-300">Surat Masuk · {{ $s->no_agenda }}</p>
-                    <h2 class="mt-1 font-serif text-xl font-bold leading-snug sm:text-2xl">{{ $s->perihal }}</h2>
+                    <h2 class="mt-1 font-display text-xl font-bold leading-snug tracking-[-0.02em] sm:text-2xl">{{ $s->perihal }}</h2>
                     <p class="mt-2 text-sm text-gov-100/85">{{ $s->instansi?->nama ?? '-' }} · diterima {{ $s->tgl_diterima?->translatedFormat('d F Y') }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -61,7 +61,7 @@
         @if ($s->isRahasia())
             <div class="flex items-start gap-3 border-b border-red-100 bg-red-50 px-6 py-3 text-xs text-red-800">
                 <x-icon name="eye" class="mt-0.5 h-4 w-4 shrink-0" />
-                <p>Surat bersifat <strong>rahasia</strong>: hanya staf dan administrator yang dapat membuka berkas ini.</p>
+                <p>Surat bersifat <strong>rahasia</strong>: hanya unit tujuan disposisi, Administrator, Petugas TU, dan Pimpinan yang dapat membuka berkas ini.</p>
             </div>
         @endif
 
@@ -199,7 +199,7 @@
         </div>
     </div>
 
-    @if (auth()->user()->punyaRole('staf', 'admin'))
+    @if (auth()->user()->bolehBeriDisposisi())
         <div class="gov-card mb-4 flex flex-wrap items-center justify-between gap-3 p-5">
             <div class="min-w-0">
                 <p class="gov-card-title">ACC &amp; Disposisi</p>
@@ -324,8 +324,8 @@
             <div class="gov-card px-6 py-10 text-center">
                 <p class="text-sm font-semibold text-slate-600">Belum ada disposisi</p>
                 <p class="mt-1 text-xs text-slate-500">
-                    @if (auth()->user()->punyaRole('staf', 'admin'))
-                        Isi formulir di atas untuk meneruskan surat ke unit kerja.
+                    @if (auth()->user()->bolehBeriDisposisi())
+                        Gunakan tombol ACC &amp; Disposisi untuk meneruskan surat ke unit kerja.
                     @else
                         Surat ini belum didisposisikan.
                     @endif

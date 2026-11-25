@@ -7,7 +7,7 @@
     <a href="{{ route('laporan.index', ['jenis' => 'keluar']) }}" class="gov-btn-outline">
         <x-icon name="chart" class="h-4 w-4" /> Laporan
     </a>
-    @if (auth()->user()->punyaRole('staf', 'admin'))
+    @if (auth()->user()->bolehKelolaSurat())
         <a href="{{ route('surat-keluar.create') }}" class="gov-btn">
             <x-icon name="plus" class="h-4 w-4" /> Buat Surat Keluar
         </a>
@@ -25,7 +25,7 @@
             </div>
             <div>
                 <label class="gov-help" for="status">Status</label>
-                <select id="status" name="status" class="gov-input">
+                <select id="status" name="status" class="gov-input" x-on:change="$el.form.requestSubmit()">
                     <option value="">Semua status</option>
                     <option value="{{ implode(',', App\Models\SuratKeluar::BELUM_DISETUJUI) }}" @selected(request('status') === implode(',', App\Models\SuratKeluar::BELUM_DISETUJUI))>Belum disetujui</option>
                     @foreach (App\Models\SuratKeluar::STATUS as $nilai => $label)
@@ -35,7 +35,7 @@
             </div>
             <div>
                 <label class="gov-help" for="instansi_id">Tujuan</label>
-                <select id="instansi_id" name="instansi_id" class="gov-input">
+                <select id="instansi_id" name="instansi_id" class="gov-input" x-on:change="$el.form.requestSubmit()">
                     <option value="">Semua tujuan</option>
                     @foreach ($instansi as $i)
                         <option value="{{ $i->id }}" @selected(request('instansi_id') == $i->id)>{{ $i->nama }}</option>
@@ -44,7 +44,7 @@
             </div>
             <div>
                 <label class="gov-help" for="klasifikasi_id">Klasifikasi</label>
-                <select id="klasifikasi_id" name="klasifikasi_id" class="gov-input">
+                <select id="klasifikasi_id" name="klasifikasi_id" class="gov-input" x-on:change="$el.form.requestSubmit()">
                     <option value="">Semua klasifikasi</option>
                     @foreach ($klasifikasi as $k)
                         <option value="{{ $k->id }}" @selected(request('klasifikasi_id') == $k->id)>{{ $k->kode }}</option>
@@ -75,27 +75,27 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-[860px] divide-y divide-slate-100">
+            <table class="gov-table-w860 divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
-                        <th class="gov-th">Nomor Surat</th>
+                        <th class="gov-th w-[196px]">Nomor Surat</th>
                         <th class="gov-th">Hal / Tujuan</th>
-                        <th class="gov-th">Unit</th>
-                        <th class="gov-th">Tanggal</th>
-                        <th class="gov-th">Status</th>
-                        <th class="gov-th text-right">Aksi</th>
+                        <th class="gov-th w-[88px]">Unit</th>
+                        <th class="gov-th w-[148px]">Tanggal</th>
+                        <th class="gov-th w-[128px]">Status</th>
+                        <th class="gov-th w-[112px] pr-5 text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($surat as $s)
                         <tr class="hover:bg-slate-50/70">
-                            <td class="gov-td whitespace-nowrap font-mono text-xs font-semibold text-gov-800">{{ $s->no_surat }}</td>
+                            <td class="gov-td whitespace-nowrap font-mono text-xs font-semibold tabular-nums text-gov-800">{{ $s->no_surat }}</td>
                             <td class="gov-td">
                                 <a href="{{ route('surat-keluar.show', $s) }}" class="font-semibold text-slate-800 hover:text-gov-700">{{ $s->hal }}</a>
                                 <p class="mt-0.5 text-xs text-slate-500">Kepada {{ $s->instansi?->nama ?? '-' }}</p>
                             </td>
                             <td class="gov-td text-xs">{{ $s->unit?->kode ?? '-' }}</td>
-                            <td class="gov-td whitespace-nowrap text-xs">
+                            <td class="gov-td whitespace-nowrap text-xs tabular-nums">
                                 {{ $s->tgl_surat?->translatedFormat('d M Y') }}
                                 @if ($s->tgl_kirim)
                                     <p class="text-slate-400">Kirim: {{ $s->tgl_kirim->translatedFormat('d M Y') }}</p>
@@ -103,7 +103,7 @@
                             </td>
                             <td class="gov-td"><x-badge :value="$s->status" /></td>
                             <td class="gov-td">
-                                <div class="flex items-center justify-end gap-1.5">
+                                <div class="flex items-center justify-end gap-1">
                                     <a href="{{ route('surat-keluar.show', $s) }}" class="rounded-md p-1.5 text-slate-500 hover:bg-gov-50 hover:text-gov-700" title="Lihat">
                                         <x-icon name="eye" class="h-4 w-4" />
                                     </a>

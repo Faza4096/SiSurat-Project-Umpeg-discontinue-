@@ -20,8 +20,8 @@ class AlurSuratKeluarTest extends TestCase
         Notification::fake();
         Storage::fake('local');
 
-        $tu = User::factory()->staf()->create();
-        $pimpinan = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
+        $pimpinan = User::factory()->pimpinan()->create();
         $surat = $this->suratKeluar($tu);
 
         // Persetujuan tidak boleh dari status draf.
@@ -80,34 +80,42 @@ class AlurSuratKeluarTest extends TestCase
         $this->assertSame('diarsipkan', $surat->fresh()->status);
     }
 
-    public function test_staf_dapat_menyetujui_surat_keluar(): void
+    public function test_pimpinan_dapat_menyetujui_surat_keluar(): void
     {
         Storage::fake('local');
 
-        $staf = User::factory()->staf()->create();
-        $surat = $this->suratKeluar($staf, ['status' => 'menunggu_ttd']);
+        $pimpinan = User::factory()->pimpinan()->create();
+        $surat = $this->suratKeluar($pimpinan, ['status' => 'menunggu_ttd']);
 
-        $this->actingAs($staf)->post(route('surat-keluar.acc', $surat))->assertSessionHasNoErrors();
+        $this->actingAs($pimpinan)->post(route('surat-keluar.acc', $surat))->assertSessionHasNoErrors();
 
         $this->assertSame('disetujui', $surat->fresh()->status);
     }
 
-    public function test_administrator_dapat_menyetujui_surat_keluar(): void
+    public function test_petugas_tu_tidak_dapat_menyetujui_surat_keluar(): void
     {
-        Storage::fake('local');
+        $tu = User::factory()->petugasTu()->create();
+        $surat = $this->suratKeluar($tu, ['status' => 'menunggu_ttd']);
 
-        $tu = User::factory()->staf()->create();
+        $this->actingAs($tu)->post(route('surat-keluar.acc', $surat))->assertForbidden();
+
+        $this->assertSame('menunggu_ttd', $surat->fresh()->status);
+    }
+
+    public function test_administrator_tidak_dapat_menyetujui_surat_keluar(): void
+    {
+        $tu = User::factory()->petugasTu()->create();
         $admin = User::factory()->admin()->create();
         $surat = $this->suratKeluar($tu, ['status' => 'menunggu_ttd']);
 
-        $this->actingAs($admin)->post(route('surat-keluar.acc', $surat))->assertSessionHasNoErrors();
+        $this->actingAs($admin)->post(route('surat-keluar.acc', $surat))->assertForbidden();
 
-        $this->assertSame('disetujui', $surat->fresh()->status);
+        $this->assertSame('menunggu_ttd', $surat->fresh()->status);
     }
 
     public function test_hapus_draf_memakai_soft_delete(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $surat = $this->suratKeluar($tu);
 
         $this->actingAs($tu)->delete(route('surat-keluar.destroy', $surat))->assertRedirect();
@@ -117,7 +125,7 @@ class AlurSuratKeluarTest extends TestCase
 
     public function test_surat_terkirim_tidak_dapat_dihapus(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $surat = $this->suratKeluar($tu, ['status' => 'terkirim']);
 
         $this->actingAs($tu)->delete(route('surat-keluar.destroy', $surat))->assertForbidden();
@@ -126,7 +134,7 @@ class AlurSuratKeluarTest extends TestCase
 
     public function test_buat_balasan_dari_surat_masuk(): void
     {
-        $tu = User::factory()->staf()->create();
+        $tu = User::factory()->petugasTu()->create();
         $surat = $this->suratMasuk($tu);
 
         $this->actingAs($tu)

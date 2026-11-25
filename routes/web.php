@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArsipController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DisposisiController;
 use App\Http\Controllers\InstansiController;
@@ -37,16 +38,12 @@ Route::middleware('auth')->group(function () {
     Route::get('surat-masuk/{suratMasuk}', [SuratMasukController::class, 'show'])
         ->whereNumber('suratMasuk')->name('surat-masuk.show');
 
-    Route::middleware('role:staf')->group(function () {
+    Route::middleware('role:petugas_tu')->group(function () {
         Route::get('surat-masuk/create', [SuratMasukController::class, 'create'])->name('surat-masuk.create');
         Route::post('surat-masuk', [SuratMasukController::class, 'store'])->name('surat-masuk.store');
         Route::get('surat-masuk/{suratMasuk}/edit', [SuratMasukController::class, 'edit'])->name('surat-masuk.edit');
         Route::put('surat-masuk/{suratMasuk}', [SuratMasukController::class, 'update'])->name('surat-masuk.update');
         Route::delete('surat-masuk/{suratMasuk}', [SuratMasukController::class, 'destroy'])->name('surat-masuk.destroy');
-        Route::get('surat-masuk/{suratMasuk}/permanen', [SuratMasukController::class, 'formHapusPermanen'])
-            ->whereNumber('suratMasuk')->name('surat-masuk.hapus-permanen.form');
-        Route::delete('surat-masuk/{suratMasuk}/permanen', [SuratMasukController::class, 'hapusPermanen'])
-            ->whereNumber('suratMasuk')->name('surat-masuk.hapus-permanen');
         Route::patch('surat-masuk/{suratMasuk}/arsipkan', [SuratMasukController::class, 'arsipkan'])->name('surat-masuk.arsipkan');
         Route::post('surat-masuk/{suratMasuk}/lampiran', [SuratMasukController::class, 'unggahLampiran'])->name('surat-masuk.lampiran.store');
     });
@@ -60,43 +57,46 @@ Route::middleware('auth')->group(function () {
     Route::get('surat-keluar/{suratKeluar}', [SuratKeluarController::class, 'show'])
         ->whereNumber('suratKeluar')->name('surat-keluar.show');
 
-    Route::middleware('role:staf')->group(function () {
+    Route::middleware('role:petugas_tu')->group(function () {
         Route::get('surat-keluar/create', [SuratKeluarController::class, 'create'])->name('surat-keluar.create');
         Route::post('surat-keluar', [SuratKeluarController::class, 'store'])->name('surat-keluar.store');
         Route::get('surat-keluar/{suratKeluar}/edit', [SuratKeluarController::class, 'edit'])->name('surat-keluar.edit');
         Route::put('surat-keluar/{suratKeluar}', [SuratKeluarController::class, 'update'])->name('surat-keluar.update');
         Route::delete('surat-keluar/{suratKeluar}', [SuratKeluarController::class, 'destroy'])->name('surat-keluar.destroy');
-        Route::get('surat-keluar/{suratKeluar}/permanen', [SuratKeluarController::class, 'formHapusPermanen'])
-            ->whereNumber('suratKeluar')->name('surat-keluar.hapus-permanen.form');
-        Route::delete('surat-keluar/{suratKeluar}/permanen', [SuratKeluarController::class, 'hapusPermanen'])
-            ->whereNumber('suratKeluar')->name('surat-keluar.hapus-permanen');
         Route::post('surat-keluar/{suratKeluar}/ajukan', [SuratKeluarController::class, 'ajukan'])->name('surat-keluar.ajukan');
         Route::post('surat-keluar/{suratKeluar}/kirim', [SuratKeluarController::class, 'kirim'])->name('surat-keluar.kirim');
         Route::post('surat-keluar/{suratKeluar}/arsipkan', [SuratKeluarController::class, 'arsipkan'])->name('surat-keluar.arsipkan');
     });
 
     Route::post('surat-keluar/{suratKeluar}/acc', [SuratKeluarController::class, 'acc'])
-        ->middleware('role:staf')->name('surat-keluar.acc');
+        ->middleware('role:pimpinan')->name('surat-keluar.acc');
     Route::post('surat-keluar/{suratKeluar}/tolak', [SuratKeluarController::class, 'tolak'])
-        ->middleware('role:staf')->name('surat-keluar.tolak');
+        ->middleware('role:pimpinan')->name('surat-keluar.tolak');
+
+    /*
+    | Arsip surat
+    */
+    Route::get('arsip', [ArsipController::class, 'index'])->name('arsip.index');
+    Route::get('arsip/ekspor', [ArsipController::class, 'ekspor'])->name('arsip.ekspor');
+    Route::get('arsip/pdf', [ArsipController::class, 'pdf'])->name('arsip.pdf');
 
     /*
     | Disposisi & tindak lanjut
     */
     Route::get('disposisi', [DisposisiController::class, 'index'])->name('disposisi.index');
     Route::post('surat-masuk/{suratMasuk}/disposisi', [DisposisiController::class, 'store'])
-        ->middleware('role:staf')->name('disposisi.store');
+        ->middleware('role:pimpinan')->name('disposisi.store');
     Route::get('surat-masuk/{suratMasuk}/acc', [DisposisiController::class, 'formAcc'])
-        ->whereNumber('suratMasuk')->middleware('role:staf')->name('disposisi.acc.form');
+        ->whereNumber('suratMasuk')->middleware('role:pimpinan')->name('disposisi.acc.form');
     Route::post('surat-masuk/{suratMasuk}/acc', [DisposisiController::class, 'acc'])
-        ->whereNumber('suratMasuk')->middleware('role:staf')->name('disposisi.acc');
+        ->whereNumber('suratMasuk')->middleware('role:pimpinan')->name('disposisi.acc');
     Route::get('disposisi/cetak/pdf', [DisposisiController::class, 'cetak'])->name('disposisi.cetak');
     Route::get('disposisi/{disposisi}/kartu', [DisposisiController::class, 'kartu'])
         ->whereNumber('disposisi')->name('disposisi.kartu');
     Route::get('disposisi/{disposisi}/pdf', [DisposisiController::class, 'pdf'])
         ->whereNumber('disposisi')->name('disposisi.pdf');
     Route::delete('disposisi/{disposisi}', [DisposisiController::class, 'destroy'])
-        ->middleware('role:staf')->name('disposisi.destroy');
+        ->middleware('role:pimpinan,admin')->name('disposisi.destroy');
     Route::patch('disposisi-tujuan/{tujuan}', [DisposisiController::class, 'ubahStatus'])->name('tujuan.status');
     Route::get('disposisi-tujuan/{tujuan}/bukti', [DisposisiController::class, 'unduhBukti'])->name('tujuan.bukti.unduh');
     Route::post('disposisi-tujuan/{tujuan}/bukti', [DisposisiController::class, 'unggahBukti'])->name('tujuan.bukti');
@@ -128,6 +128,16 @@ Route::middleware('auth')->group(function () {
         Route::get('log-aktivitas', [LogAktivitasController::class, 'index'])->name('log.index');
         Route::get('pengaturan', [PengaturanController::class, 'edit'])->name('pengaturan.edit');
         Route::put('pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+
+        // Pemeliharaan data: hapus permanen surat beserta berkasnya.
+        Route::get('surat-masuk/{suratMasuk}/permanen', [SuratMasukController::class, 'formHapusPermanen'])
+            ->whereNumber('suratMasuk')->name('surat-masuk.hapus-permanen.form');
+        Route::delete('surat-masuk/{suratMasuk}/permanen', [SuratMasukController::class, 'hapusPermanen'])
+            ->whereNumber('suratMasuk')->name('surat-masuk.hapus-permanen');
+        Route::get('surat-keluar/{suratKeluar}/permanen', [SuratKeluarController::class, 'formHapusPermanen'])
+            ->whereNumber('suratKeluar')->name('surat-keluar.hapus-permanen.form');
+        Route::delete('surat-keluar/{suratKeluar}/permanen', [SuratKeluarController::class, 'hapusPermanen'])
+            ->whereNumber('suratKeluar')->name('surat-keluar.hapus-permanen');
     });
 
     /*
@@ -138,6 +148,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('profile/foto', [ProfileController::class, 'unggahFoto'])->name('profile.foto.unggah');
+    Route::delete('profile/foto', [ProfileController::class, 'hapusFoto'])->name('profile.foto.hapus');
+    Route::get('foto-profil/{user}', [ProfileController::class, 'foto'])
+        ->whereNumber('user')->name('profile.foto');
 });
 
 require __DIR__ . '/auth.php';

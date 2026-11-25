@@ -33,7 +33,7 @@
             <p class="text-xs text-slate-500">{{ $items->total() }} catatan</p>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-[760px] divide-y divide-slate-100">
+            <table class="gov-table-w760 divide-y divide-slate-100">
                 <thead class="bg-slate-50/70">
                     <tr>
                         <th class="gov-th">Waktu</th>

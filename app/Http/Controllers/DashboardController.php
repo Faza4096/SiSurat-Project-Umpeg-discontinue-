@@ -29,7 +29,7 @@ class DashboardController extends Controller
             'tren' => $this->tren($user),
             'akun' => $peran === 'admin' ? $this->ringkasanAkun() : null,
             'log' => $peran === 'admin'
-                ? LogAktivitas::with('pengguna')->latest('waktu')->take(8)->get()
+                ? LogAktivitas::with('pengguna')->latest('waktu')->take(10)->get()
                 : collect(),
         ]);
     }
@@ -56,25 +56,26 @@ class DashboardController extends Controller
     private function bagian(User $user): array
     {
         return match ($user->role?->nama) {
-            // Satu peran operator memegang seluruh antrean; bagian "belum
-            // diserahkan" dilewati karena suratnya sudah tampil di antrean ACC.
-            'staf', 'admin' => [...$this->bagianPimpinan($user), ...$this->bagianTu($user, false)],
+            // Administrator fokus pada pengelolaan sistem: angka registrasi,
+            // akun, dan log tersedia tanpa antrean operasional.
+            'admin' => [],
+            'petugas_tu' => $this->bagianTu($user),
+            'pimpinan' => $this->bagianPimpinan($user),
+            'staf' => $this->bagianStaf($user),
             default => [],
         };
     }
 
-    private function bagianTu(User $user, bool $denganPenyerahan = true): array
+    private function bagianTu(User $user): array
     {
-        $belumDiserahkan = $denganPenyerahan
-            ? SuratMasuk::with('instansi')
-                ->terlihatOleh($user)
-                ->where('status', 'diterima')
-                ->orderByRaw(self::URUT_SIFAT)
-                ->orderBy('tgl_diterima')
-                ->take(8)
-                ->get()
-                ->map(fn (SuratMasuk $s) => $this->barisSuratMasuk($s, $s->tgl_diterima))
-            : collect();
+        $belumDiserahkan = SuratMasuk::with('instansi')
+            ->terlihatOleh($user)
+            ->where('status', 'diterima')
+            ->orderByRaw(self::URUT_SIFAT)
+            ->orderBy('tgl_diterima')
+            ->take(8)
+            ->get()
+            ->map(fn (SuratMasuk $s) => $this->barisSuratMasuk($s, $s->tgl_diterima));
 
         $sudahAcc = SuratKeluar::with('instansi')
             ->terlihatOleh($user)
@@ -104,13 +105,13 @@ class DashboardController extends Controller
             ->take(8);
 
         return [
-            ...($denganPenyerahan ? [[
+            [
                 'judul' => 'Belum diberi disposisi',
-                'catatan' => 'Catat lalu beri disposisi.',
+                'catatan' => 'Surat sudah tercatat dan menunggu disposisi Pimpinan.',
                 'items' => $belumDiserahkan,
                 'kosong' => 'Semua surat masuk sudah didisposisikan.',
                 'tautan' => ['label' => 'Catat surat masuk', 'url' => route('surat-masuk.create')],
-            ]] : []),
+            ],
             [
                 'judul' => 'Sudah di-ACC, belum dikirim',
                 'catatan' => 'Unggah berkas final dan catat pengiriman.',
@@ -123,7 +124,7 @@ class DashboardController extends Controller
                 'catatan' => 'Sudah selesai atau terkirim, arsip belum dicatat.',
                 'items' => $belumArsip,
                 'kosong' => 'Semua surat sudah diarsipkan.',
-                'tautan' => null,
+                'tautan' => ['label' => 'Diarsipkan', 'url' => route('arsip.index')],
             ],
         ];
     }
@@ -165,6 +166,48 @@ class DashboardController extends Controller
                 'kosong' => 'Tidak ada surat keluar yang menunggu persetujuan.',
                 'tautan' => ['label' => 'Semua pengajuan', 'url' => route('surat-keluar.index', ['status' => 'menunggu_ttd'])],
             ],
+        ];
+    }
+
+    /** Antrean Staf/Umpeg: disposisi unitnya yang belum dinyatakan selesai. */
+    private function bagianStaf(User $user): array
+    {
+        $items = DisposisiTujuan::with('unit', 'disposisi.suratMasuk.instansi', 'disposisi.suratKeluar.instansi')
+            ->where('unit_id', $user->unit_id)
+            ->where('status_tindak_lanjut', '!=', 'selesai')
+            ->whereHas('disposisi')
+            ->terlihatOleh($user)
+            ->orderBy('tgl_selesai')
+            ->orderByDesc('id')
+            ->take(10)
+            ->get()
+            ->map(fn (DisposisiTujuan $t) => $this->barisTindakLanjut($t));
+
+        return [[
+            'judul' => 'Disposisi untuk unit saya',
+            'catatan' => 'Tindak lanjuti, unggah bukti, lalu nyatakan selesai.',
+            'items' => $items,
+            'kosong' => 'Tidak ada disposisi yang menunggu tindak lanjut.',
+            'tautan' => ['label' => 'Semua disposisi', 'url' => route('disposisi.index')],
+        ]];
+    }
+
+    private function barisTindakLanjut(DisposisiTujuan $tujuan): array
+    {
+        $disposisi = $tujuan->disposisi;
+        $masuk = $disposisi?->suratMasuk;
+        $batas = $disposisi?->tgl_penyelesaian;
+
+        return [
+            'nomor' => $disposisi?->nomorSurat() ?? '-',
+            'judul' => $disposisi?->perihal() ?? '-',
+            'meta' => trim(($masuk ? 'Surat masuk' : 'Surat keluar') . ' · ' . ($tujuan->unit?->nama ?? '-')),
+            'sifat' => $masuk?->sifat ?? $disposisi?->suratKeluar?->sifat ?? 'biasa',
+            'waktu' => $batas
+                ? ($batas->isPast() ? 'Lewat batas ' : 'Batas ') . $batas->translatedFormat('d M Y')
+                : 'Tanpa batas waktu',
+            'keadaan' => $batas?->isPast() ? 'lewat' : ($batas && $batas->lessThanOrEqualTo(now()->addDays(3)) ? 'dekat' : null),
+            'url' => $disposisi?->tautanSurat() ?? route('disposisi.index'),
         ];
     }
 

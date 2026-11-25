@@ -190,7 +190,7 @@ class SuratKeluarController extends Controller
             ->with('ok', "Surat keluar {$nomor} beserta disposisinya dihapus permanen.");
     }
 
-    /** Operator mengajukan draf/revisi untuk persetujuan. */
+    /** Petugas TU mengajukan draf/revisi untuk persetujuan. */
     public function ajukan(SuratKeluar $suratKeluar)
     {
         $this->authorize('ajukan', $suratKeluar);
@@ -198,8 +198,8 @@ class SuratKeluarController extends Controller
         $suratKeluar->update(['status' => 'menunggu_ttd', 'diajukan_pada' => now()]);
         LogAktivitas::catat('surat_keluar.ajukan', $suratKeluar->no_surat);
 
-        $operator = User::operator()->whereKeyNot($suratKeluar->dibuat_oleh)->get();
-        Notification::send($operator, new MenungguTandaTangan($suratKeluar));
+        $pemberi = User::pemberiDisposisi()->whereKeyNot($suratKeluar->dibuat_oleh)->get();
+        Notification::send($pemberi, new MenungguTandaTangan($suratKeluar));
 
         return back()->with('ok', 'Surat diajukan untuk persetujuan dan tanda tangan.');
     }
@@ -263,7 +263,7 @@ class SuratKeluarController extends Controller
         return back()->with('ok', 'Surat di-ACC. Kartu disposisi dibuat dan diteruskan ke Tata Usaha untuk pengiriman.');
     }
 
-    /** Staf menolak / meminta revisi. */
+    /** Pimpinan menolak / meminta revisi. */
     public function tolak(Request $request, SuratKeluar $suratKeluar)
     {
         $this->authorize('tolak', $suratKeluar);
@@ -287,7 +287,7 @@ class SuratKeluarController extends Controller
         return back()->with('ok', 'Surat dikembalikan ke pembuat untuk direvisi.');
     }
 
-    /** Staf mengunggah berkas final dan mencatat pengiriman. */
+    /** Petugas TU mengunggah berkas final dan mencatat pengiriman. */
     public function kirim(Request $request, SuratKeluar $suratKeluar)
     {
         $this->authorize('kirim', $suratKeluar);
@@ -324,11 +324,15 @@ class SuratKeluarController extends Controller
         return back()->with('ok', 'Berkas final tersimpan dan pengiriman tercatat.');
     }
 
-    public function arsipkan(SuratKeluar $suratKeluar)
+    public function arsipkan(Request $request, SuratKeluar $suratKeluar)
     {
         $this->authorize('arsipkan', $suratKeluar);
 
-        $suratKeluar->update(['status' => 'diarsipkan']);
+        $suratKeluar->update([
+            'status' => 'diarsipkan',
+            'diarsipkan_pada' => now(),
+            'diarsipkan_oleh' => $request->user()->id,
+        ]);
         LogAktivitas::catat('surat_keluar.arsip', $suratKeluar->no_surat);
 
         return back()->with('ok', 'Surat keluar diarsipkan.');
